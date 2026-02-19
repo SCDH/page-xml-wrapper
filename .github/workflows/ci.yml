@@ -37,7 +37,8 @@ jobs:
           python-version: "3.14"
           cache: pip
       - run: pip install ".[docs]"
-      - run: pdoc -o .api_docs page_xml
+      - run: pdoc -o .api_docs page_xml/*
+      - run: tree .api_docs
       - uses: actions/upload-pages-artifact@v3
         with:
           path: .api_docs
