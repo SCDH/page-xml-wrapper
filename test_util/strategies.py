@@ -4,8 +4,8 @@ import string
 
 import hypothesis.strategies as st
 
-from page_xml.geometry import Point, Box, Polygon
-from page_xml import Coords, Page, TextLine, TextRegion
+from pygexml.geometry import Point, Box, Polygon
+from pygexml.page import Coords, Page, TextLine, TextRegion
 
 st_points = st.builds(Point, x=st.integers(min_value=0), y=st.integers(min_value=0))
 

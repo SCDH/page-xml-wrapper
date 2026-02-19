@@ -1,4 +1,4 @@
-name: page-xml-wrapper checks, tests and docs
+name: pygexml checks, tests and docs
 
 on: [push, workflow_dispatch]
 
@@ -15,9 +15,9 @@ jobs:
           python-version: ${{ matrix.python-version }}
           cache: pip
       - run: pip install ".[dev,test]"
-      - run: black --check page_xml test test_util
-      - run: mypy page_xml test test_util
-      - run: pyright page_xml test test_util
+      - run: black --check pygexml test test_util
+      - run: mypy pygexml test test_util
+      - run: pyright pygexml test test_util
       - run: pytest -v
 
   pages:
@@ -37,7 +37,7 @@ jobs:
           python-version: "3.14"
           cache: pip
       - run: pip install ".[docs]"
-      - run: pdoc -o .api_docs page_xml/*
+      - run: pdoc -o .api_docs pygexml/*
       - run: tree .api_docs
       - uses: actions/upload-pages-artifact@v3
         with:

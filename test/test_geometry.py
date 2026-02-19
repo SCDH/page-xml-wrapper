@@ -2,7 +2,7 @@ import pytest
 from hypothesis import given, strategies as st
 
 from test_util.strategies import *
-from page_xml.geometry import *
+from pygexml.geometry import *
 
 ############## Tests for Point #####################
 

@@ -3,7 +3,7 @@ requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "page_xml_wrapper"
+name = "pygexml"
 version = "0.1.0"
 requires-python = ">=3.12"
 dependencies = [
@@ -24,7 +24,7 @@ test = [
 docs = ["pdoc"]
 
 [tool.setuptools]
-packages = ["page_xml"]
+packages = ["pygexml"]
 
 [tool.mypy]
 strict = true

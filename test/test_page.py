@@ -4,8 +4,8 @@ import hypothesis.strategies as st
 from lxml import etree
 
 from test_util.strategies import *
-from page_xml.geometry import Point, Polygon
-from page_xml import Coords, ID, TextLine, TextRegion, Page
+from pygexml.geometry import Point, Polygon
+from pygexml.page import Coords, ID, TextLine, TextRegion, Page
 
 ############## Tests for Coords ####################
 
