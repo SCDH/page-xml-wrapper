@@ -1,0 +1,45 @@
+name: page-xml-wrapper checks, tests and docs
+
+on: [push, workflow_dispatch]
+
+jobs:
+  checks-and-tests:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.12", "3.13", "3.14"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+      - run: pip install ".[dev,test]"
+      - run: black --check page_xml test test_util
+      - run: mypy page_xml test test_util
+      - run: pyright page_xml test test_util
+      - run: pytest -v
+
+  pages:
+    needs: checks-and-tests
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+          cache: pip
+      - run: pip install ".[docs]"
+      - run: pdoc -o .api_docs page_xml
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: .api_docs
+      - id: deploy
+        uses: actions/deploy-pages@v4

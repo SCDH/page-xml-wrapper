@@ -1,0 +1,16 @@
+# Default virtual environment
+env
+
+# Generated API docs default directory
+.api_docs
+
+# Editor config / swap files
+*.sw?
+.vscode
+
+# Python stuff
+__pycache__
+*.egg-info
+.mypy_cache
+.pytest_cache
+.hypothesis
