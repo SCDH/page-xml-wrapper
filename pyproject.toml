@@ -11,6 +11,9 @@ dependencies = [
     "lxml-stubs",
 ]
 
+[tool.setuptools.package-data]
+pygexml = ["py.typed"]
+
 [project.optional-dependencies]
 dev = [
     "mypy",
