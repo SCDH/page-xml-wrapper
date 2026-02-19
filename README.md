@@ -31,6 +31,8 @@ for line in page.all_text():
 `Page`, `TextRegion` and `TextLine` each expose `all_text()` and `all_words()` iterators.
 Lookups by ID are available via `lookup_region()` and `lookup_textline()`.
 
+Refer to the [online API docs](https://scdh.github.io/page-xml-wrapper) for details.
+
 ## Development
 
 ```bash
