@@ -3,7 +3,7 @@ from hypothesis import given, assume
 import hypothesis.strategies as st
 from lxml import etree
 
-from test_util.strategies import *
+from pygexml.strategies import *
 from pygexml.geometry import Point, Polygon
 from pygexml.page import Coords, ID, TextLine, TextRegion, Page
 

@@ -9,21 +9,15 @@ requires-python = ">=3.12"
 dependencies = [
     "lxml",
     "lxml-stubs",
+    "hypothesis",
 ]
 
 [tool.setuptools.package-data]
 pygexml = ["py.typed"]
 
 [project.optional-dependencies]
-dev = [
-    "mypy",
-    "pyright",
-    "black"
-]
-test = [
-    "pytest",
-    "hypothesis",
-]
+dev = ["mypy", "pyright", "black"]
+test = ["pytest"]
 docs = ["pdoc"]
 
 [tool.setuptools]

@@ -36,16 +36,31 @@ Lookups by ID are available via `lookup_region()` and `lookup_textline()`.
 
 Refer to the [online API docs][api-docs] for details.
 
+### Hypothesis strategies
+
+The `pygexml.strategies` module provides [Hypothesis][hypothesis] strategies for all pygexml types, ready to use in property-based tests - including downstream projects:
+
+```python
+from hypothesis import given
+from pygexml.strategies import st_pages
+
+@given(st_pages())
+def test_my_page_processing(page):
+    assert process(page) is not None
+```
+
+Refer to the [`pygexml.strategies` API docs][api-docs-strategies] for details.
+
 ## Development
 
 ```bash
 pip install ".[dev,test,docs]"
 
-black pygexml test test_util    # format
-mypy pygexml test test_util     # type check
-pyright pygexml test test_util  # type check
-pytest -v                       # tests
-pdoc -o .api_docs pygexml/*     # API docs
+black pygexml test          # format
+mypy pygexml test           # type check
+pyright pygexml test        # type check
+pytest -v                   # tests
+pdoc -o .api_docs pygexml/* # API docs
 ```
 
 CI runs on Python 3.12, 3.13 and 3.14. [API documentation][api-docs] is published to GitHub Pages on every push to `main`.
@@ -65,7 +80,9 @@ Released under the [MIT License](LICENSE).
 [page-xml]: https://github.com/PRImA-Research-Lab/PAGE-XML
 [workflows]: https://github.com/SCDH/pygexml/actions/workflows/ci.yml
 [workflows-badge]: https://github.com/SCDH/pygexml/actions/workflows/ci.yml/badge.svg
+[hypothesis]: https://hypothesis.readthedocs.io
 [api-docs]: https://scdh.github.io/pygexml
+[api-docs-strategies]: https://scdh.github.io/pygexml/pygexml/strategies.html
 [api-docs-badge]: https://img.shields.io/badge/API%20docs-online-blue?logo=gitbook&logoColor=lightgrey
 [gh-issues]: https://github.com/SCDH/pygexml/issues
 [gh-prs]: https://github.com/SCDH/pygexml/pulls
