@@ -2,6 +2,8 @@
 
 A minimal Python wrapper around the [PAGE-XML](https://github.com/PRImA-Research-Lab/PAGE-XML) format for OCR output.
 
+[![pygexml checks, tests and docs](https://github.com/SCDH/pygexml/actions/workflows/ci.yml/badge.svg)](https://github.com/SCDH/pygexml/actions/workflows/ci.yml) [![API docs online](https://img.shields.io/badge/API%20docs-online-blue?logo=gitbook&logoColor=lightgrey)](https://scdh.github.io/pygexml)
+
 ## Installation
 
 ```
