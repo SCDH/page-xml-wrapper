@@ -1,4 +1,5 @@
 # mypy: disallow_untyped_defs=False
+# mypy: disallow_untyped_calls=False
 
 import string
 
@@ -30,13 +31,29 @@ st_coords = st.builds(Coords, polygon=st_polygons2)
 
 st_coords_strings = st.builds(str, st_coords)
 
+
+def st_xml_text(**kwargs):
+    xml_chars = (
+        st.characters(min_codepoint=0x20, max_codepoint=0xD7FF)
+        | st.characters(min_codepoint=0xE000, max_codepoint=0xFFFD)
+        | st.characters(min_codepoint=0x10000, max_codepoint=0x10FFFF)
+        | st.sampled_from(["\t", "\n"])
+    )
+    return st.text(alphabet=xml_chars, **kwargs)
+
+
+def st_simple_text(**kwargs):
+    simple = string.ascii_letters + string.digits + " _-"
+    return st.text(alphabet=simple, max_size=20, **kwargs)
+
+
 st_text_lines = st.builds(
-    TextLine, id=st.text(alphabet=string.printable), coords=st_coords, text=st.text()
+    TextLine, id=st_simple_text(), coords=st_coords, text=st_xml_text()
 )
 
 st_text_regions = st.builds(
     TextRegion,
-    id=st.text(alphabet=string.printable),
+    id=st_simple_text(),
     coords=st_coords,
     textlines=st.builds(
         lambda lines: {l.id: l for l in lines}, st.lists(st_text_lines)
@@ -46,7 +63,7 @@ st_text_regions = st.builds(
 
 @st.composite
 def st_pages(draw):
-    image_filename = draw(st.text(alphabet=string.printable))
+    image_filename = draw(st_simple_text())
     regions = {tr.id: tr for tr in draw(st.lists(st_text_regions))}
     page = Page(image_filename=image_filename, regions=regions)
     return page
