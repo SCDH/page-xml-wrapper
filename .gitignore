@@ -10,6 +10,8 @@ env
 
 # Python stuff
 __pycache__
+dist
+build
 *.egg-info
 .mypy_cache
 .pytest_cache

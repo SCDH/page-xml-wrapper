@@ -78,8 +78,8 @@ Copyright (c) 2026 [Mirko Westermeier][gh-memowe] (SCDH, University of Münster)
 Released under the [MIT License](LICENSE).
 
 [page-xml]: https://github.com/PRImA-Research-Lab/PAGE-XML
-[workflows]: https://github.com/SCDH/pygexml/actions/workflows/ci.yml
-[workflows-badge]: https://github.com/SCDH/pygexml/actions/workflows/ci.yml/badge.svg
+[workflows]: https://github.com/SCDH/pygexml/actions/workflows/checks_tests_docs.yml
+[workflows-badge]: https://github.com/SCDH/pygexml/actions/workflows/checks_tests_docs.yml/badge.svg
 [hypothesis]: https://hypothesis.readthedocs.io
 [api-docs]: https://scdh.github.io/pygexml
 [api-docs-strategies]: https://scdh.github.io/pygexml/pygexml/strategies.html

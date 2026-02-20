@@ -5,19 +5,30 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "pygexml"
 version = "0.1.2"
+description = "A minimal Python wrapper around the PAGE-XML format for OCR output"
+readme = "README.md"
+license = "MIT"
 requires-python = ">=3.12"
+authors = [
+    { name = "Mirko Westermeier", email = "mirko.westermeier@uni-muenster.de" },
+]
 dependencies = [
     "lxml",
-    "lxml-stubs",
-    "hypothesis",
 ]
+
+[project.urls]
+Homepage = "https://github.com/SCDH/pygexml"
+Repository = "https://github.com/SCDH/pygexml"
+Documentation = "https://scdh.github.io/pygexml"
+Issues = "https://github.com/SCDH/pygexml/issues"
 
 [tool.setuptools.package-data]
 pygexml = ["py.typed"]
 
 [project.optional-dependencies]
-dev = ["mypy", "pyright", "black"]
-test = ["pytest"]
+strategies = ["hypothesis"]
+dev = ["mypy", "pyright", "black", "lxml-stubs"]
+test = ["pytest", "hypothesis"]
 docs = ["pdoc"]
 
 [tool.setuptools]
