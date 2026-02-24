@@ -23,6 +23,8 @@ for line in page.all_text():
     print(line)
 ```
 
+All dataclasses are serializable with `to_dict`/`from_dict` and `to_json`/`from_json` via [dataclasses-json][dcj].
+
 ### Data model
 
 | Class | Import from |
@@ -81,6 +83,7 @@ Released under the [MIT License](LICENSE).
 [workflows]: https://github.com/SCDH/pygexml/actions/workflows/checks_tests_docs.yml
 [workflows-badge]: https://github.com/SCDH/pygexml/actions/workflows/checks_tests_docs.yml/badge.svg
 [hypothesis]: https://hypothesis.readthedocs.io
+[dcj]: https://pypi.org/project/dataclasses-json/
 [api-docs]: https://scdh.github.io/pygexml
 [api-docs-strategies]: https://scdh.github.io/pygexml/pygexml/strategies.html
 [api-docs-badge]: https://img.shields.io/badge/API%20docs-online-blue?logo=gitbook&logoColor=lightgrey

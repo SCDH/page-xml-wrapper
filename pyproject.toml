@@ -14,6 +14,7 @@ authors = [
 ]
 dependencies = [
     "lxml",
+    "dataclasses-json"
 ]
 
 [project.urls]

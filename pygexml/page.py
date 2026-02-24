@@ -1,6 +1,7 @@
 from re import Pattern, compile
 from warnings import warn
 from dataclasses import dataclass
+from dataclasses_json import DataClassJsonMixin
 from typing import ClassVar
 from collections.abc import Iterable
 from lxml import etree
@@ -25,7 +26,7 @@ class PageXMLError(Exception):
 
 
 @dataclass
-class Coords:
+class Coords(DataClassJsonMixin):
     polygon: Polygon
 
     # Loose regex that allows for negative values that can be handled by
@@ -79,7 +80,7 @@ type ID = str
 
 
 @dataclass
-class TextLine:
+class TextLine(DataClassJsonMixin):
     id: ID
     coords: Coords
     text: str
@@ -112,7 +113,7 @@ class TextLine:
 
 
 @dataclass
-class TextRegion:
+class TextRegion(DataClassJsonMixin):
     id: ID
     coords: Coords
     textlines: dict[ID, TextLine]
@@ -149,7 +150,7 @@ class TextRegion:
 
 
 @dataclass
-class Page:
+class Page(DataClassJsonMixin):
     image_filename: str
     regions: dict[ID, TextRegion]
 
