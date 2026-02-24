@@ -1,3 +1,4 @@
+from pathlib import Path
 from re import Pattern, compile
 from warnings import warn
 from dataclasses import dataclass
@@ -180,8 +181,8 @@ class Page(DataClassJsonMixin):
         return cls.from_xml(page_element)
 
     @classmethod
-    def read_xml(cls, input_file: str) -> str:
-        with open(f"{input_file}", "r", encoding="utf-8") as f:
+    def read_xml(cls, input_path: str|Path) -> str:
+        with open(f"{input_path}", "r", encoding="utf-8") as f:
             return f.read()
 
     def lookup_region(self, id: ID) -> TextRegion | None:

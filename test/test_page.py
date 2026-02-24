@@ -1,3 +1,6 @@
+import tempfile
+import pathlib
+
 import pytest
 from hypothesis import given, assume
 import hypothesis.strategies as st
@@ -398,3 +401,19 @@ def test_page_all_arbitrary_text_and_words(page: Page) -> None:
     assert list(page.all_words()) == [
         w for r in page.regions.values() for w in r.all_words()
     ]
+
+
+def test_read_xml(tmp_path):
+    content = "<root>Hello world.</root>"
+    xml_file = tmp_path / "test.xml"
+    xml_file.write_text(content, encoding="utf-8")
+
+    result = Page.read_xml(xml_file)
+
+    assert result == content
+
+def test_read_xml_missing_file(tmp_path):
+    missing_file = tmp_path / "does_not_exist.xml"
+
+    with pytest.raises(FileNotFoundError):
+        Page.read_xml(missing_file)
