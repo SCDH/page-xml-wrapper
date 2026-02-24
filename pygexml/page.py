@@ -179,6 +179,11 @@ class Page(DataClassJsonMixin):
             raise PageXMLError("Page: no page element found")
         return cls.from_xml(page_element)
 
+    @classmethod
+    def read_xml(cls, input_file: str) -> str:
+        with open(f"{input_file}", "r", encoding="utf-8") as f:
+            return f.read()
+
     def lookup_region(self, id: ID) -> TextRegion | None:
         return self.regions.get(id)
 
