@@ -412,6 +412,7 @@ def test_read_xml(tmp_path):
 
     assert result == content
 
+
 def test_read_xml_missing_file(tmp_path):
     missing_file = tmp_path / "does_not_exist.xml"
 
