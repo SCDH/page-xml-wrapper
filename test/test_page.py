@@ -389,8 +389,10 @@ def test_from_xml_file_example(tmp_path: Path) -> None:
     assert result == Page.from_xml_string(content)
 
 
-def test_from_xml_missing_file(tmp_path: Path) -> None:
+def test_from_missing_xml_file(tmp_path: Path) -> None:
     missing_file = tmp_path / "does_not_exist.xml"
+
+    assert not missing_file.exists()
 
     with pytest.raises(FileNotFoundError):
         Page.from_xml_file(missing_file)
