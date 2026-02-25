@@ -1,3 +1,4 @@
+from pathlib import Path
 from re import Pattern, compile
 from warnings import warn
 from dataclasses import dataclass
@@ -178,6 +179,12 @@ class Page(DataClassJsonMixin):
         if page_element is None:
             raise PageXMLError("Page: no page element found")
         return cls.from_xml(page_element)
+
+    @classmethod
+    def from_xml_file(cls, file: Path | str, encoding: str = "utf-8") -> "Page":
+        path = Path(file)
+        xml_string = path.read_text(encoding=encoding)
+        return Page.from_xml_string(xml_string)
 
     def lookup_region(self, id: ID) -> TextRegion | None:
         return self.regions.get(id)
