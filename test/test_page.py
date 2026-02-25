@@ -1,5 +1,5 @@
 import tempfile
-import pathlib
+from pathlib import Path
 
 import pytest
 from hypothesis import given, assume
@@ -417,7 +417,7 @@ def test_page_all_arbitrary_text_and_words(page: Page) -> None:
 #     assert result == 'MOCK'
 
 
-def test_from_xml_file(tmp_path):
+def test_from_xml_file(tmp_path: Path) -> None:
     content = """<?xml version='1.0' encoding='utf-8'?>
             <PcGts xmlns="http://schema.primaresearch.org/PAGE/gts/pagecontent/2019-07-15" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://schema.primaresearch.org/PAGE/gts/pagecontent/2019-07-15/pagecontent.xsd">
                 <Metadata>
@@ -448,7 +448,7 @@ def test_from_xml_file(tmp_path):
     assert result.image_filename == "a.jpg"
 
 
-def test_from_xml_missing_file(tmp_path):
+def test_from_xml_missing_file(tmp_path: Path) -> None:
     missing_file = tmp_path / "does_not_exist.xml"
 
     with pytest.raises(Exception, match="Page: file does not exist"):
