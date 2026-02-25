@@ -1,10 +1,8 @@
-import tempfile
 from pathlib import Path
 
 import pytest
 from hypothesis import given, assume
 import hypothesis.strategies as st
-from unittest.mock import patch
 
 from lxml import etree
 
@@ -354,6 +352,50 @@ def test_page_from_string() -> None:
     }
 
 
+def test_from_xml_file_example(tmp_path: Path) -> None:
+    content = """<?xml version='1.0' encoding='utf-8'?>
+            <PcGts xmlns="http://schema.primaresearch.org/PAGE/gts/pagecontent/2019-07-15" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://schema.primaresearch.org/PAGE/gts/pagecontent/2019-07-15/pagecontent.xsd">
+                <Metadata>
+                    <Creator>God</Creator>
+                    <Created>Sonntag</Created>
+                </Metadata>
+                <Page imageFilename="a.jpg" imageWidth="4217" imageHeight="1742">
+                    <TextRegion id="b">
+                        <Coords points="1,2 3,4"/>
+                        <TextLine id="c" index="0" custom="heights_v2:[91.0,32.1]">
+                            <Coords points="5,6 7,8"/>
+                            <Baseline points="2008,360 2208,352"/>
+                            <TextEquiv conf="0.932">
+                            <Unicode>d</Unicode>
+                            </TextEquiv>
+                        </TextLine>
+                    </TextRegion>
+                </Page>
+            </PcGts>
+        """
+
+    xml_filepath = tmp_path / "test.xml"
+    xml_filepath.write_text(content, encoding="utf-8")
+
+    result = Page.from_xml_file(xml_filepath)
+    assert result.image_filename == "a.jpg"
+    assert result.regions == {
+        "b": TextRegion(
+            id="b",
+            coords=Coords.parse("1,2 3,4"),
+            textlines={"c": TextLine(id="c", coords=Coords.parse("5,6 7,8"), text="d")},
+        )
+    }
+    assert result == Page.from_xml_string(content)
+
+
+def test_from_xml_missing_file(tmp_path: Path) -> None:
+    missing_file = tmp_path / "does_not_exist.xml"
+
+    with pytest.raises(FileNotFoundError):
+        Page.from_xml_file(missing_file)
+
+
 @given(st_text_regions, st_pages())
 def test_page_region_lookup(region: TextRegion, page: Page) -> None:
     assume(region.id not in page.regions)
@@ -403,41 +445,3 @@ def test_page_all_arbitrary_text_and_words(page: Page) -> None:
     assert list(page.all_words()) == [
         w for r in page.regions.values() for w in r.all_words()
     ]
-
-
-def test_from_xml_file(tmp_path: Path) -> None:
-    content = """<?xml version='1.0' encoding='utf-8'?>
-            <PcGts xmlns="http://schema.primaresearch.org/PAGE/gts/pagecontent/2019-07-15" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://schema.primaresearch.org/PAGE/gts/pagecontent/2019-07-15/pagecontent.xsd">
-                <Metadata>
-                    <Creator>God</Creator>
-                    <Created>Sonntag</Created>
-                </Metadata>
-                <Page imageFilename="a.jpg" imageWidth="4217" imageHeight="1742">
-                    <TextRegion id="b">
-                        <Coords points="1,2 3,4"/>
-                        <TextLine id="c" index="0" custom="heights_v2:[91.0,32.1]">
-                            <Coords points="5,6 7,8"/>
-                            <Baseline points="2008,360 2208,352"/>
-                            <TextEquiv conf="0.932">
-                            <Unicode>d</Unicode>
-                            </TextEquiv>
-                        </TextLine>
-                    </TextRegion>
-                </Page>
-            </PcGts>
-        """
-
-    xml_file = tmp_path / "test.xml"
-    xml_file.write_text(content, encoding="utf-8")
-
-    result = Page.from_xml_file(xml_file)
-
-    assert isinstance(result, Page)
-    assert result.image_filename == "a.jpg"
-
-
-def test_from_xml_missing_file(tmp_path: Path) -> None:
-    missing_file = tmp_path / "does_not_exist.xml"
-
-    with pytest.raises(FileNotFoundError):
-        Page.from_xml_file(missing_file)
