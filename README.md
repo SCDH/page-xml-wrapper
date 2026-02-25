@@ -17,7 +17,7 @@ Requires Python 3.12+.
 ```python
 from pygexml import Page
 
-page = Page.from_xml_string(xml_string)
+page = Page.from_xml_file("docs/xml_file.xml")
 
 for line in page.all_text():
     print(line)
