@@ -181,9 +181,15 @@ class Page(DataClassJsonMixin):
         return cls.from_xml(page_element)
 
     @classmethod
-    def read_xml(cls, input_path: str|Path) -> str:
-        with open(f"{input_path}", "r", encoding="utf-8") as f:
-            return f.read()
+    def from_xml_file(cls, file: Path | str, encoding: str = "utf-8") -> "Page":
+        path = Path(file)
+
+        if not path.exists():
+            raise PageXMLError(f"Page: file does not exist: {path}")
+
+        xml_string = path.read_text(encoding=encoding)
+
+        return Page.from_xml_string(xml_string)
 
     def lookup_region(self, id: ID) -> TextRegion | None:
         return self.regions.get(id)

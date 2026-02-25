@@ -4,6 +4,8 @@ import pathlib
 import pytest
 from hypothesis import given, assume
 import hypothesis.strategies as st
+from unittest.mock import patch
+
 from lxml import etree
 
 from pygexml.strategies import *
@@ -403,18 +405,51 @@ def test_page_all_arbitrary_text_and_words(page: Page) -> None:
     ]
 
 
-def test_read_xml(tmp_path):
-    content = "<root>Hello world.</root>"
+# def test_from_xml_file(tmp_path):
+#     content = "<root>Hello world.</root>"
+#     xml_file = tmp_path / "test.xml"
+#     xml_file.write_text(content, encoding="utf-8")
+#
+#     with patch.object(Page, 'from_xml_string', return_value='MOCK') as mock:
+#         result = Page.from_xml_file(xml_file)
+#
+#     mock.assert_called_once_with(content)
+#     assert result == 'MOCK'
+
+
+def test_from_xml_file(tmp_path):
+    content = """<?xml version='1.0' encoding='utf-8'?>
+            <PcGts xmlns="http://schema.primaresearch.org/PAGE/gts/pagecontent/2019-07-15" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://schema.primaresearch.org/PAGE/gts/pagecontent/2019-07-15/pagecontent.xsd">
+                <Metadata>
+                    <Creator>God</Creator>
+                    <Created>Sonntag</Created>
+                </Metadata>
+                <Page imageFilename="a.jpg" imageWidth="4217" imageHeight="1742">
+                    <TextRegion id="b">
+                        <Coords points="1,2 3,4"/>
+                        <TextLine id="c" index="0" custom="heights_v2:[91.0,32.1]">
+                            <Coords points="5,6 7,8"/>
+                            <Baseline points="2008,360 2208,352"/>
+                            <TextEquiv conf="0.932">
+                            <Unicode>d</Unicode>
+                            </TextEquiv>
+                        </TextLine>
+                    </TextRegion>
+                </Page>
+            </PcGts>
+        """
+
     xml_file = tmp_path / "test.xml"
     xml_file.write_text(content, encoding="utf-8")
 
-    result = Page.read_xml(xml_file)
+    result = Page.from_xml_file(xml_file)
 
-    assert result == content
+    assert isinstance(result, Page)
+    assert result.image_filename == "a.jpg"
 
 
-def test_read_xml_missing_file(tmp_path):
+def test_from_xml_missing_file(tmp_path):
     missing_file = tmp_path / "does_not_exist.xml"
 
-    with pytest.raises(FileNotFoundError):
-        Page.read_xml(missing_file)
+    with pytest.raises(Exception, match="Page: file does not exist"):
+        Page.from_xml_file(missing_file)
