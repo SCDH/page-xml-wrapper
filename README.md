@@ -75,7 +75,7 @@ Please note that this project has a [Code of Conduct](CODE_OF_CONDUCT.md).
 
 ## Copyright and License
 
-Copyright (c) 2026 [Mirko Westermeier][gh-memowe] (SCDH, University of Münster)
+Copyright (c) 2026 [Mirko Westermeier][gh-memowe], [Katharina Dietz][gh-kdietzm] (SCDH, University of Münster)
 
 Released under the [MIT License](LICENSE).
 
@@ -90,3 +90,4 @@ Released under the [MIT License](LICENSE).
 [gh-issues]: https://github.com/SCDH/pygexml/issues
 [gh-prs]: https://github.com/SCDH/pygexml/pulls
 [gh-memowe]: https://github.com/memowe
+[gh-kdietzm]: https://github.com/KDietzM

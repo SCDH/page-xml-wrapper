@@ -11,6 +11,7 @@ license = "MIT"
 requires-python = ">=3.12"
 authors = [
     { name = "Mirko Westermeier", email = "mirko.westermeier@uni-muenster.de" },
+    { name = "Katharina Dietz", email = "katharina.dietz@uni-muenster.de" },
 ]
 dependencies = [
     "lxml",
