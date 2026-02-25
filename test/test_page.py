@@ -405,18 +405,6 @@ def test_page_all_arbitrary_text_and_words(page: Page) -> None:
     ]
 
 
-# def test_from_xml_file(tmp_path):
-#     content = "<root>Hello world.</root>"
-#     xml_file = tmp_path / "test.xml"
-#     xml_file.write_text(content, encoding="utf-8")
-#
-#     with patch.object(Page, 'from_xml_string', return_value='MOCK') as mock:
-#         result = Page.from_xml_file(xml_file)
-#
-#     mock.assert_called_once_with(content)
-#     assert result == 'MOCK'
-
-
 def test_from_xml_file(tmp_path: Path) -> None:
     content = """<?xml version='1.0' encoding='utf-8'?>
             <PcGts xmlns="http://schema.primaresearch.org/PAGE/gts/pagecontent/2019-07-15" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://schema.primaresearch.org/PAGE/gts/pagecontent/2019-07-15/pagecontent.xsd">
