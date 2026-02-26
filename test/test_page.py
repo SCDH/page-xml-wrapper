@@ -357,7 +357,7 @@ def test_textregion_all_arbitrary_text_and_words(region: TextRegion) -> None:
 ############### Tests for Page ####################
 
 
-def test_create_page_from_element() -> None:
+def test_page_from_element_example() -> None:
     pa = Page.from_xml(etree.fromstring("""
         <Page imageFilename="7895328.jpg" imageWidth="4279" imageHeight="5315">
             <TextRegion id="tr-1">
