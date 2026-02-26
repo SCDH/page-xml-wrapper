@@ -261,6 +261,54 @@ class Page(DataClassJsonMixin):
         xml_string = path.read_text(encoding=encoding)
         return Page.from_xml_string(xml_string)
 
+    @classmethod
+    def from_alto(cls, element: Element) -> "Page":
+        if QName(element).localname != "alto":
+            raise ALTOXMLError("Page: wrong element given")
+
+        image_element = find_child(element, "Description")
+        if image_element is None:
+            raise ALTOXMLError("Page: no Description element found")
+        image_element = find_child(image_element, "sourceImageInformation")
+        if image_element is None:
+            raise ALTOXMLError("Page: no sourceImageInformation element found")
+        filename_element = find_child(image_element, "fileName")
+        if filename_element is None:
+            raise ALTOXMLError("Page: no fileName element found")
+        image_filename = (
+            filename_element.text if filename_element.text is not None else ""
+        )
+
+        layout = find_child(element, "Layout")
+        if layout is None:
+            raise ALTOXMLError("Page: no Layout element found")
+        page_element = find_child(layout, "Page")
+        if page_element is None:
+            raise ALTOXMLError("Page: no Page element found")
+        printspace_element = find_child(page_element, "PrintSpace")
+        if printspace_element is None:
+            raise ALTOXMLError("Page: no PrintSpace element found")
+
+        text_blocks = find_children(printspace_element, "TextBlock")
+
+        return Page(
+            image_filename=image_filename,
+            regions={
+                tb.id: tb for tb in (TextRegion.from_alto(tb) for tb in text_blocks)
+            },
+        )
+
+    @classmethod
+    def from_alto_string(cls, xml_str: str) -> "Page":
+        root = etree.fromstring(xml_str.encode("utf-8"))
+        return cls.from_alto(root)
+
+    @classmethod
+    def from_alto_file(cls, file: Path | str, encoding: str = "utf-8") -> "Page":
+        path = Path(file)
+        xml_string = path.read_text(encoding=encoding)
+        return Page.from_alto_string(xml_string)
+
     def lookup_region(self, id: ID) -> TextRegion | None:
         return self.regions.get(id)
 

@@ -517,6 +517,227 @@ def test_from_missing_xml_file(tmp_path: Path) -> None:
         Page.from_xml_file(missing_file)
 
 
+def test_page_from_alto_example() -> None:
+    pa = Page.from_alto(etree.fromstring("""
+        <alto>
+            <Description>
+                <sourceImageInformation>
+                    <fileName>a.jpg</fileName>
+                </sourceImageInformation>
+            </Description>
+
+            <Layout>
+                <Page>
+                    <PrintSpace>
+                        <TextBlock ID="tr-1" HPOS="1" VPOS="2" WIDTH="3" HEIGHT="4">
+                            <TextLine ID="tl-1" HPOS="2" VPOS="3" WIDTH="4" HEIGHT="5">
+                                <String CONTENT="foo"/>
+                                <SP/>
+                                <String CONTENT="bar"/>
+                            </TextLine>
+                        </TextBlock>
+                        <TextBlock ID="tr-2" HPOS="3" VPOS="4" WIDTH="5" HEIGHT="6">
+                            <TextLine ID="tl-2" HPOS="4" VPOS="5" WIDTH="6" HEIGHT="7">
+                                <String CONTENT="baz"/>
+                            </TextLine>
+                        </TextBlock>
+                    </PrintSpace>
+                </Page>
+            </Layout>
+        </alto>
+    """))
+    assert pa.image_filename == "a.jpg"
+    assert pa.regions == {
+        "tr-1": TextRegion(
+            id="tr-1",
+            coords=Coords.parse("1,2 4,2 4,6 1,6"),
+            textlines={
+                "tl-1": TextLine(
+                    id="tl-1",
+                    coords=Coords.parse("2,3 6,3 6,8 2,8"),
+                    text="foo bar",
+                )
+            },
+        ),
+        "tr-2": TextRegion(
+            id="tr-2",
+            coords=Coords.parse("3,4 8,4 8,10 3,10"),
+            textlines={
+                "tl-2": TextLine(
+                    id="tl-2",
+                    coords=Coords.parse("4,5 10,5 10,12 4,12"),
+                    text="baz",
+                )
+            },
+        ),
+    }
+
+
+def test_page_alto_wrong_element() -> None:
+    with pytest.raises(Exception, match="wrong element given"):
+        Page.from_alto(etree.fromstring("<WRONG>!!!</WRONG>"))
+
+
+def test_page_alto_no_description() -> None:
+    xml = etree.fromstring("<alto></alto>")
+    with pytest.raises(Exception, match="no Description element found"):
+        Page.from_alto(xml)
+
+
+def test_page_alto_no_source_image_information() -> None:
+    xml = etree.fromstring("<alto><Description></Description></alto>")
+    with pytest.raises(Exception, match="no sourceImageInformation element found"):
+        Page.from_alto(xml)
+
+
+def test_page_alto_no_filename() -> None:
+    xml = etree.fromstring("""
+        <alto>
+            <Description>
+                <sourceImageInformation></sourceImageInformation>
+            </Description>
+        </alto>
+    """)
+    with pytest.raises(Exception, match="no fileName element found"):
+        Page.from_alto(xml)
+
+
+def test_page_alto_no_layout() -> None:
+    xml = etree.fromstring("""
+        <alto>
+            <Description>
+                <sourceImageInformation>
+                    <fileName>a.jpg</fileName>
+                </sourceImageInformation>
+            </Description>
+        </alto>
+    """)
+    with pytest.raises(Exception, match="no Layout element found"):
+        Page.from_alto(xml)
+
+
+def test_page_alto_no_page() -> None:
+    xml = etree.fromstring("""
+        <alto>
+            <Description>
+                <sourceImageInformation>
+                    <fileName>a.jpg</fileName>
+                </sourceImageInformation>
+            </Description>
+            <Layout></Layout>
+        </alto>
+    """)
+    with pytest.raises(Exception, match="no Page element found"):
+        Page.from_alto(xml)
+
+
+def test_page_alto_no_print_space() -> None:
+    xml = etree.fromstring("""
+        <alto>
+            <Description>
+                <sourceImageInformation>
+                    <fileName>a.jpg</fileName>
+                </sourceImageInformation>
+            </Description>
+            <Layout>
+                <Page></Page>
+            </Layout>
+        </alto>
+    """)
+    with pytest.raises(Exception, match="no PrintSpace element found"):
+        Page.from_alto(xml)
+
+
+def test_page_alto_from_string() -> None:
+    alto_string = """
+        <alto>
+            <Description>
+                <sourceImageInformation>
+                    <fileName>a.jpg</fileName>
+                </sourceImageInformation>
+            </Description>
+
+            <Layout>
+                <Page>
+                    <PrintSpace>
+                        <TextBlock ID="tr-1" HPOS="1" VPOS="2" WIDTH="3" HEIGHT="4">
+                            <TextLine ID="tl-1" HPOS="2" VPOS="3" WIDTH="4" HEIGHT="5">
+                                <String CONTENT="foo"/>
+                            </TextLine>
+                        </TextBlock>
+                    </PrintSpace>
+                </Page>
+            </Layout>
+        </alto>
+    """
+    page = Page.from_alto_string(alto_string)
+    assert page.image_filename == "a.jpg"
+    assert page.regions == {
+        "tr-1": TextRegion(
+            id="tr-1",
+            coords=Coords.parse("1,2 4,2 4,6 1,6"),
+            textlines={
+                "tl-1": TextLine(
+                    id="tl-1",
+                    coords=Coords.parse("2,3 6,3 6,8 2,8"),
+                    text="foo",
+                )
+            },
+        )
+    }
+
+
+def test_page_alto_from_file_example(tmp_path: Path) -> None:
+    alto_string = """
+        <alto>
+            <Description>
+                <sourceImageInformation>
+                    <fileName>a.jpg</fileName>
+                </sourceImageInformation>
+            </Description>
+
+            <Layout>
+                <Page>
+                    <PrintSpace>
+                        <TextBlock ID="tr-1" HPOS="1" VPOS="2" WIDTH="3" HEIGHT="4">
+                            <TextLine ID="tl-1" HPOS="2" VPOS="3" WIDTH="4" HEIGHT="5">
+                                <String CONTENT="foo"/>
+                            </TextLine>
+                        </TextBlock>
+                    </PrintSpace>
+                </Page>
+            </Layout>
+        </alto>
+    """
+
+    filepath = tmp_path / "test_alto.xml"
+    filepath.write_text(alto_string, encoding="utf-8")
+
+    result = Page.from_alto_file(filepath)
+    assert result.image_filename == "a.jpg"
+    assert result.regions == {
+        "tr-1": TextRegion(
+            id="tr-1",
+            coords=Coords.parse("1,2 4,2 4,6 1,6"),
+            textlines={
+                "tl-1": TextLine(
+                    id="tl-1",
+                    coords=Coords.parse("2,3 6,3 6,8 2,8"),
+                    text="foo",
+                )
+            },
+        )
+    }
+    assert result == Page.from_alto_string(alto_string)
+
+
+def test_page_alto_from_missing_file(tmp_path: Path) -> None:
+    missing_file = tmp_path / "does_not_exist.xml"
+    assert not missing_file.exists()
+    with pytest.raises(FileNotFoundError):
+        Page.from_alto_file(missing_file)
+
+
 @given(st_text_regions, st_pages())
 def test_page_region_lookup(region: TextRegion, page: Page) -> None:
     assume(region.id not in page.regions)
