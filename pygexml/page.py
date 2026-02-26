@@ -49,9 +49,6 @@ class Coords(DataClassJsonMixin):
         if len(self.polygon.points) < 2:
             raise PageXMLError(Coords._NOT_ENOUGH_POINTS)
 
-    def __str__(self) -> str:
-        return " ".join(str(p) for p in self.polygon.points)
-
     @classmethod
     def parse(cls, points_str: str) -> "Coords":
 
@@ -75,6 +72,9 @@ class Coords(DataClassJsonMixin):
             raise PageXMLError(cls._NOT_ENOUGH_POINTS)
 
         return Coords(polygon=polygon)
+
+    def __str__(self) -> str:
+        return " ".join(str(p) for p in self.polygon.points)
 
 
 type ID = str
