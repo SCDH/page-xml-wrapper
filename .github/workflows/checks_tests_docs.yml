@@ -1,6 +1,6 @@
 name: pygexml checks, tests and docs
 
-on: [push, workflow_dispatch]
+on: [push, workflow_dispatch, workflow_call]
 
 jobs:
   checks-and-tests:

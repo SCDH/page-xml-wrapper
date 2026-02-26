@@ -6,7 +6,11 @@ on:
       - "v*"
 
 jobs:
+  checks-and-tests:
+    uses: ./.github/workflows/checks_tests_docs.yml
+
   build:
+    needs: checks-and-tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
