@@ -7,7 +7,7 @@ import hypothesis.strategies as st
 from lxml import etree
 
 from pygexml.strategies import *
-from pygexml.geometry import Point, Polygon
+from pygexml.geometry import Point, Box, Polygon
 from pygexml.page import Coords, ID, TextLine, TextRegion, Page
 
 ############## Tests for Coords ####################
@@ -54,6 +54,23 @@ def test_coords_allow_for_simple_negative_coordinates() -> None:
 @given(st_coords)
 def test_coords_parse_arbitrary(coords: Coords) -> None:
     assert Coords.parse(str(coords)) == coords
+
+
+def test_coords_from_box_example() -> None:
+    box = Box(top_left=Point(17, 17), bottom_right=Point(42, 42))
+    coords = Coords.from_box(box)
+    assert coords.polygon.points == [
+        Point(17, 17),
+        Point(42, 17),
+        Point(42, 42),
+        Point(17, 42),
+    ]
+
+
+@given(st_boxes)
+def test_coords_from_box(box: Box) -> None:
+    coords = Coords.from_box(box)
+    assert coords.polygon == Polygon.from_box(box)
 
 
 @given(st_coords_strings)

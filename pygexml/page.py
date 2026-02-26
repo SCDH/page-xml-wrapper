@@ -8,7 +8,7 @@ from collections.abc import Iterable
 from lxml import etree
 from lxml.etree import _Element as Element, QName
 
-from .geometry import Point, Polygon, GeometryError
+from .geometry import Point, Box, Polygon, GeometryError
 
 
 def find_child(element: Element, name: str) -> Element | None:
@@ -72,6 +72,10 @@ class Coords(DataClassJsonMixin):
             raise PageXMLError(cls._NOT_ENOUGH_POINTS)
 
         return Coords(polygon=polygon)
+
+    @classmethod
+    def from_box(cls, box: Box) -> "Coords":
+        return cls(polygon=Polygon.from_box(box))
 
     def __str__(self) -> str:
         return " ".join(str(p) for p in self.polygon.points)
