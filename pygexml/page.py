@@ -8,7 +8,7 @@ from collections.abc import Iterable
 from lxml import etree
 from lxml.etree import _Element as Element, QName
 
-from .geometry import Point, Polygon, GeometryError
+from .geometry import Point, Box, Polygon, GeometryError
 
 
 def find_child(element: Element, name: str) -> Element | None:
@@ -23,6 +23,10 @@ def find_children(element: Element, name: str) -> Iterable[Element]:
 
 
 class PageXMLError(Exception):
+    pass
+
+
+class ALTOXMLError(Exception):
     pass
 
 
@@ -49,9 +53,6 @@ class Coords(DataClassJsonMixin):
         if len(self.polygon.points) < 2:
             raise PageXMLError(Coords._NOT_ENOUGH_POINTS)
 
-    def __str__(self) -> str:
-        return " ".join(str(p) for p in self.polygon.points)
-
     @classmethod
     def parse(cls, points_str: str) -> "Coords":
 
@@ -76,6 +77,13 @@ class Coords(DataClassJsonMixin):
 
         return Coords(polygon=polygon)
 
+    @classmethod
+    def from_box(cls, box: Box) -> "Coords":
+        return cls(polygon=Polygon.from_box(box))
+
+    def __str__(self) -> str:
+        return " ".join(str(p) for p in self.polygon.points)
+
 
 type ID = str
 
@@ -85,9 +93,6 @@ class TextLine(DataClassJsonMixin):
     id: ID
     coords: Coords
     text: str
-
-    def words(self) -> Iterable[str]:
-        return self.text.split()
 
     @classmethod
     def from_xml(cls, element: Element) -> "TextLine":
@@ -111,6 +116,43 @@ class TextLine(DataClassJsonMixin):
             coords=Coords.parse(str(coords_element.attrib["points"])),
             text=text_element.text if text_element.text is not None else "",
         )
+
+    @classmethod
+    def from_alto(cls, element: Element) -> "TextLine":
+        if QName(element).localname != "TextLine":
+            raise ALTOXMLError("TextLine: wrong element given")
+        if "ID" not in element.attrib:
+            raise ALTOXMLError("TextLine: no ID found")
+
+        box_attrs = ["HPOS", "VPOS", "WIDTH", "HEIGHT"]
+        if not all(attr in element.attrib for attr in box_attrs):
+            raise ALTOXMLError("TextLine: missing one of the box attributes")
+        coords: Coords = Coords.from_box(
+            Box.from_top_left_width_height(
+                top_left=Point(
+                    x=int(element.attrib["HPOS"]), y=int(element.attrib["VPOS"])
+                ),
+                width=int(element.attrib["WIDTH"]),
+                height=int(element.attrib["HEIGHT"]),
+            )
+        )
+
+        if len(element) == 0:
+            raise ALTOXMLError("TextLine: no text elements found")
+
+        text: str = ""
+        for child in element:
+            match QName(child).localname:
+                case "String":
+                    if "CONTENT" in child.attrib:
+                        text += str(child.attrib["CONTENT"])
+                case "SP":
+                    text += " "
+
+        return TextLine(id=str(element.attrib["ID"]), coords=coords, text=text)
+
+    def words(self) -> Iterable[str]:
+        return self.text.split()
 
 
 @dataclass
@@ -138,6 +180,39 @@ class TextRegion(DataClassJsonMixin):
             textlines={
                 tl.id: tl for tl in (TextLine.from_xml(tl) for tl in text_lines)
             },
+        )
+
+    @classmethod
+    def from_alto(cls, element: Element) -> "TextRegion":
+        if QName(element).localname != "TextBlock":
+            raise ALTOXMLError("TextRegion: wrong element given")
+        if "ID" not in element.attrib:
+            raise ALTOXMLError("TextRegion: no ID found")
+
+        box_attrs = ["HPOS", "VPOS", "WIDTH", "HEIGHT"]
+        if not all(attr in element.attrib for attr in box_attrs):
+            raise ALTOXMLError("TextRegion: missing one of the box attributes")
+        coords: Coords = Coords.from_box(
+            Box.from_top_left_width_height(
+                top_left=Point(
+                    x=int(element.attrib["HPOS"]), y=int(element.attrib["VPOS"])
+                ),
+                width=int(element.attrib["WIDTH"]),
+                height=int(element.attrib["HEIGHT"]),
+            )
+        )
+
+        textlines: dict[ID, TextLine] = {}
+        for child in element:
+            if QName(child).localname == "TextLine":
+                tl = TextLine.from_alto(child)
+                textlines[tl.id] = tl
+
+        if not textlines:
+            raise ALTOXMLError("TextRegion: no TextLine elements found")
+
+        return TextRegion(
+            id=str(element.attrib["ID"]), coords=coords, textlines=textlines
         )
 
     def lookup_textline(self, id: ID) -> TextLine | None:
@@ -185,6 +260,54 @@ class Page(DataClassJsonMixin):
         path = Path(file)
         xml_string = path.read_text(encoding=encoding)
         return Page.from_xml_string(xml_string)
+
+    @classmethod
+    def from_alto(cls, element: Element) -> "Page":
+        if QName(element).localname != "alto":
+            raise ALTOXMLError("Page: wrong element given")
+
+        image_element = find_child(element, "Description")
+        if image_element is None:
+            raise ALTOXMLError("Page: no Description element found")
+        image_element = find_child(image_element, "sourceImageInformation")
+        if image_element is None:
+            raise ALTOXMLError("Page: no sourceImageInformation element found")
+        filename_element = find_child(image_element, "fileName")
+        if filename_element is None:
+            raise ALTOXMLError("Page: no fileName element found")
+        image_filename = (
+            filename_element.text if filename_element.text is not None else ""
+        )
+
+        layout = find_child(element, "Layout")
+        if layout is None:
+            raise ALTOXMLError("Page: no Layout element found")
+        page_element = find_child(layout, "Page")
+        if page_element is None:
+            raise ALTOXMLError("Page: no Page element found")
+        printspace_element = find_child(page_element, "PrintSpace")
+        if printspace_element is None:
+            raise ALTOXMLError("Page: no PrintSpace element found")
+
+        text_blocks = find_children(printspace_element, "TextBlock")
+
+        return Page(
+            image_filename=image_filename,
+            regions={
+                tb.id: tb for tb in (TextRegion.from_alto(tb) for tb in text_blocks)
+            },
+        )
+
+    @classmethod
+    def from_alto_string(cls, xml_str: str) -> "Page":
+        root = etree.fromstring(xml_str.encode("utf-8"))
+        return cls.from_alto(root)
+
+    @classmethod
+    def from_alto_file(cls, file: Path | str, encoding: str = "utf-8") -> "Page":
+        path = Path(file)
+        xml_string = path.read_text(encoding=encoding)
+        return Page.from_alto_string(xml_string)
 
     def lookup_region(self, id: ID) -> TextRegion | None:
         return self.regions.get(id)

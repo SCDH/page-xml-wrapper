@@ -26,6 +26,15 @@ class Box:
         ):
             raise GeometryError("Box: top left is not top left")
 
+    @classmethod
+    def from_top_left_width_height(
+        cls, top_left: Point, width: int, height: int
+    ) -> "Box":
+        return cls(
+            top_left=top_left,
+            bottom_right=Point(x=top_left.x + width, y=top_left.y + height),
+        )
+
     def width(self) -> int:
         return self.bottom_right.x - self.top_left.x
 
@@ -46,6 +55,17 @@ class Polygon:
     def __post_init__(self) -> None:
         if len(self.points) < 1:
             raise GeometryError("Polygon: points must not be empty")
+
+    @classmethod
+    def from_box(cls, box: Box) -> "Polygon":
+        return cls(
+            points=[
+                box.top_left,
+                Point(x=box.bottom_right.x, y=box.top_left.y),
+                box.bottom_right,
+                Point(x=box.top_left.x, y=box.bottom_right.y),
+            ]
+        )
 
     def bounding_box(self) -> Box:
         min_x = min(point.x for point in self.points)

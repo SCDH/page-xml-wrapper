@@ -48,6 +48,23 @@ def test_box_construction_exception(pp: tuple[Point, Point]) -> None:
         Box(top_left=br, bottom_right=tl)  # flipped points!
 
 
+def test_box_construction_width_height_example() -> None:
+    tl = Point(17, 17)
+    box = Box.from_top_left_width_height(top_left=tl, width=25, height=25)
+    assert box.top_left == tl
+    assert box.bottom_right == Point(42, 42)
+
+
+@given(st_box_points())
+def test_box_construction_width_height(pp: tuple[Point, Point]) -> None:
+    tl, br = pp
+    box = Box.from_top_left_width_height(
+        top_left=tl, width=br.x - tl.x, height=br.y - tl.y
+    )
+    assert box.top_left == tl
+    assert box.bottom_right == br
+
+
 @given(st_boxes)
 def test_box_width(box: Box) -> None:
     assert box.width() == abs(box.bottom_right.x - box.top_left.x)
@@ -95,6 +112,17 @@ def test_polygon_construction_without_points() -> None:
         Polygon(points=[])
 
 
+def test_polygon_from_box_example() -> None:
+    box = Box(Point(17, 17), Point(42, 42))
+    polygon = Polygon.from_box(box)
+    assert polygon.points == [
+        Point(17, 17),
+        Point(42, 17),
+        Point(42, 42),
+        Point(17, 42),
+    ]
+
+
 @given(st_polygons)
 def test_polygon_bounding_box_corners(polygon: Polygon) -> None:
     points = polygon.points
@@ -112,3 +140,10 @@ def test_polygon_bounding_box_contains(polygon: Polygon) -> None:
     bounding_box = polygon.bounding_box()
     for point in polygon.points:
         assert bounding_box.contains(point)
+
+
+@given(st_polygons)
+def test_polygon_bounding_box_roundtrip(polygon: Polygon) -> None:
+    bounding_box = polygon.bounding_box()
+    box_polygon = Polygon.from_box(bounding_box)
+    assert box_polygon.bounding_box() == bounding_box

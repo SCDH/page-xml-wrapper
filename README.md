@@ -1,6 +1,6 @@
 # pygexml
 
-A minimal Python wrapper around the [PAGE-XML][page-xml] format for OCR output.
+A minimal Python wrapper around the [PAGE-XML][page-xml] format for OCR output. Can also import [ALTO-XML][alto-xml].
 
 [![pygexml checks, tests and docs][workflows-badge]][workflows] [![API docs online][api-docs-badge]][api-docs]
 
@@ -80,6 +80,7 @@ Copyright (c) 2026 [Mirko Westermeier][gh-memowe], [Katharina Dietz][gh-kdietzm]
 Released under the [MIT License](LICENSE).
 
 [page-xml]: https://github.com/PRImA-Research-Lab/PAGE-XML
+[alto-xml]: https://altoxml.github.io/
 [workflows]: https://github.com/SCDH/pygexml/actions/workflows/checks_tests_docs.yml
 [workflows-badge]: https://github.com/SCDH/pygexml/actions/workflows/checks_tests_docs.yml/badge.svg
 [hypothesis]: https://hypothesis.readthedocs.io
