@@ -90,9 +90,6 @@ class TextLine(DataClassJsonMixin):
     coords: Coords
     text: str
 
-    def words(self) -> Iterable[str]:
-        return self.text.split()
-
     @classmethod
     def from_xml(cls, element: Element) -> "TextLine":
         if QName(element).localname != "TextLine":
@@ -115,6 +112,9 @@ class TextLine(DataClassJsonMixin):
             coords=Coords.parse(str(coords_element.attrib["points"])),
             text=text_element.text if text_element.text is not None else "",
         )
+
+    def words(self) -> Iterable[str]:
+        return self.text.split()
 
 
 @dataclass
