@@ -47,11 +47,9 @@ class Coords(DataClassJsonMixin):
         r"^([0-9]+,[0-9]+ )+([0-9]+,[0-9]+)$"
     )
 
-    _NOT_ENOUGH_POINTS: ClassVar[str] = "Coords: at least 2 Points are required"
-
     def __post_init__(self) -> None:
         if len(self.polygon.points) < 2:
-            raise PageXMLError(Coords._NOT_ENOUGH_POINTS)
+            raise PageXMLError("At least 2 Points are required")
 
     @classmethod
     def parse(cls, points_str: str) -> "Coords":
@@ -73,7 +71,7 @@ class Coords(DataClassJsonMixin):
         try:
             polygon = Polygon(points=points)
         except GeometryError:
-            raise PageXMLError(cls._NOT_ENOUGH_POINTS)
+            raise PageXMLError("At least 2 Points are required")
 
         return Coords(polygon=polygon)
 
@@ -97,20 +95,20 @@ class TextLine(DataClassJsonMixin):
     @classmethod
     def from_xml(cls, element: Element) -> "TextLine":
         if QName(element).localname != "TextLine":
-            raise PageXMLError("TextLine: wrong element given")
+            raise PageXMLError("Wrong element given")
         if "id" not in element.attrib:
-            raise PageXMLError("TextLine: no id found")
+            raise PageXMLError("No id found")
         coords_element = find_child(element, "Coords")
         if coords_element is None:
-            raise PageXMLError("TextLine: no Coords found")
+            raise PageXMLError("No Coords found")
         if "points" not in coords_element.attrib:
-            raise PageXMLError("TextLine: Coords has no points attribute")
+            raise PageXMLError("Coords has no points attribute")
         text_equiv = find_child(element, "TextEquiv")
         text_element = (
             find_child(text_equiv, "Unicode") if text_equiv is not None else None
         )
         if text_element is None:
-            raise PageXMLError("TextLine: no text found")
+            raise PageXMLError("No text found")
         return TextLine(
             id=str(element.attrib["id"]),
             coords=Coords.parse(str(coords_element.attrib["points"])),
@@ -120,13 +118,13 @@ class TextLine(DataClassJsonMixin):
     @classmethod
     def from_alto(cls, element: Element) -> "TextLine":
         if QName(element).localname != "TextLine":
-            raise ALTOXMLError("TextLine: wrong element given")
+            raise ALTOXMLError("Wrong element given")
         if "ID" not in element.attrib:
-            raise ALTOXMLError("TextLine: no ID found")
+            raise ALTOXMLError("No ID found")
 
         box_attrs = ["HPOS", "VPOS", "WIDTH", "HEIGHT"]
         if not all(attr in element.attrib for attr in box_attrs):
-            raise ALTOXMLError("TextLine: missing one of the box attributes")
+            raise ALTOXMLError("Missing one of the box attributes")
         coords: Coords = Coords.from_box(
             Box.from_top_left_width_height(
                 top_left=Point(
@@ -138,7 +136,7 @@ class TextLine(DataClassJsonMixin):
         )
 
         if len(element) == 0:
-            raise ALTOXMLError("TextLine: no text elements found")
+            raise ALTOXMLError("No text elements found")
 
         text: str = ""
         for child in element:
@@ -164,14 +162,14 @@ class TextRegion(DataClassJsonMixin):
     @classmethod
     def from_xml(cls, element: Element) -> "TextRegion":
         if QName(element).localname != "TextRegion":
-            raise PageXMLError("TextRegion: wrong element given")
+            raise PageXMLError("Wrong element given")
         if "id" not in element.attrib:
-            raise PageXMLError("TextRegion: no id found")
+            raise PageXMLError("No id found")
         coords_element = find_child(element, "Coords")
         if coords_element is None:
-            raise PageXMLError("TextRegion: no Coords element found")
+            raise PageXMLError("No Coords element found")
         if "points" not in coords_element.attrib:
-            raise PageXMLError("TextRegion: Coords has no points attribute")
+            raise PageXMLError("Coords has no points attribute")
         text_lines = find_children(element, "TextLine")
 
         return TextRegion(
@@ -185,13 +183,13 @@ class TextRegion(DataClassJsonMixin):
     @classmethod
     def from_alto(cls, element: Element) -> "TextRegion":
         if QName(element).localname != "TextBlock":
-            raise ALTOXMLError("TextRegion: wrong element given")
+            raise ALTOXMLError("Wrong element given")
         if "ID" not in element.attrib:
-            raise ALTOXMLError("TextRegion: no ID found")
+            raise ALTOXMLError("No ID found")
 
         box_attrs = ["HPOS", "VPOS", "WIDTH", "HEIGHT"]
         if not all(attr in element.attrib for attr in box_attrs):
-            raise ALTOXMLError("TextRegion: missing one of the box attributes")
+            raise ALTOXMLError("Missing one of the box attributes")
         coords: Coords = Coords.from_box(
             Box.from_top_left_width_height(
                 top_left=Point(
@@ -209,7 +207,7 @@ class TextRegion(DataClassJsonMixin):
                 textlines[tl.id] = tl
 
         if not textlines:
-            raise ALTOXMLError("TextRegion: no TextLine elements found")
+            raise ALTOXMLError("No TextLine elements found")
 
         return TextRegion(
             id=str(element.attrib["ID"]), coords=coords, textlines=textlines
@@ -233,10 +231,10 @@ class Page(DataClassJsonMixin):
     @classmethod
     def from_xml(cls, element: Element) -> "Page":
         if QName(element).localname != "Page":
-            raise PageXMLError("Page: wrong element given")
+            raise PageXMLError("Wrong element given")
 
         if "imageFilename" not in element.attrib:
-            raise PageXMLError("Page: no filename found")
+            raise PageXMLError("No filename found")
 
         regions = find_children(element, "TextRegion")
 
@@ -252,7 +250,7 @@ class Page(DataClassJsonMixin):
         root = etree.fromstring(xml_str.encode("utf-8"))
         page_element = find_child(root, "Page")
         if page_element is None:
-            raise PageXMLError("Page: no page element found")
+            raise PageXMLError("No page element found")
         return cls.from_xml(page_element)
 
     @classmethod
@@ -264,30 +262,30 @@ class Page(DataClassJsonMixin):
     @classmethod
     def from_alto(cls, element: Element) -> "Page":
         if QName(element).localname != "alto":
-            raise ALTOXMLError("Page: wrong element given")
+            raise ALTOXMLError("Wrong element given")
 
         image_element = find_child(element, "Description")
         if image_element is None:
-            raise ALTOXMLError("Page: no Description element found")
+            raise ALTOXMLError("No Description element found")
         image_element = find_child(image_element, "sourceImageInformation")
         if image_element is None:
-            raise ALTOXMLError("Page: no sourceImageInformation element found")
+            raise ALTOXMLError("No sourceImageInformation element found")
         filename_element = find_child(image_element, "fileName")
         if filename_element is None:
-            raise ALTOXMLError("Page: no fileName element found")
+            raise ALTOXMLError("No fileName element found")
         image_filename = (
             filename_element.text if filename_element.text is not None else ""
         )
 
         layout = find_child(element, "Layout")
         if layout is None:
-            raise ALTOXMLError("Page: no Layout element found")
+            raise ALTOXMLError("No Layout element found")
         page_element = find_child(layout, "Page")
         if page_element is None:
-            raise ALTOXMLError("Page: no Page element found")
+            raise ALTOXMLError("No Page element found")
         printspace_element = find_child(page_element, "PrintSpace")
         if printspace_element is None:
-            raise ALTOXMLError("Page: no PrintSpace element found")
+            raise ALTOXMLError("No PrintSpace element found")
 
         text_blocks = find_children(printspace_element, "TextBlock")
 

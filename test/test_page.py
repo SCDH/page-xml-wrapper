@@ -20,7 +20,7 @@ def test_coords_example() -> None:
 
 
 def test_coords_with_not_enough_points() -> None:
-    with pytest.raises(Exception, match="at least 2 Points"):
+    with pytest.raises(Exception, match="At least 2 Points"):
         Coords(polygon=Polygon(points=[Point(17, 42)]))
 
 
@@ -97,13 +97,13 @@ def test_textline_simple_parsing_example() -> None:
 
 
 def test_textline_wrong_element() -> None:
-    with pytest.raises(Exception, match="wrong element given"):
+    with pytest.raises(Exception, match="Wrong element given"):
         TextLine.from_xml(etree.fromstring("<WRONG>!!!</WRONG>"))
 
 
 def test_textline_no_id() -> None:
     xml = etree.fromstring("<TextLine></TextLine>")
-    with pytest.raises(Exception, match="no id found"):
+    with pytest.raises(Exception, match="No id found"):
         TextLine.from_xml(xml)
 
 
@@ -115,7 +115,7 @@ def test_textline_no_coords() -> None:
             </TextEquiv>
         </TextLine>
     """)
-    with pytest.raises(Exception, match="no Coords found"):
+    with pytest.raises(Exception, match="No Coords found"):
         TextLine.from_xml(xml)
 
 
@@ -127,7 +127,7 @@ def test_textline_no_text() -> None:
             </TextEquiv>
         </TextLine>
     """)
-    with pytest.raises(Exception, match="no text found"):
+    with pytest.raises(Exception, match="No text found"):
         TextLine.from_xml(xml)
 
 
@@ -159,7 +159,7 @@ def test_textline_alto_example() -> None:
 
 
 def test_textline_alto_wrong_element() -> None:
-    with pytest.raises(Exception, match="wrong element given"):
+    with pytest.raises(Exception, match="Wrong element given"):
         TextLine.from_alto(etree.fromstring("<WRONG>!!!</WRONG>"))
 
 
@@ -167,7 +167,7 @@ def test_textline_alto_no_id() -> None:
     xml = etree.fromstring(
         """<TextLine HPOS="1" VPOS="2" WIDTH="3" HEIGHT="4"></TextLine>"""
     )
-    with pytest.raises(Exception, match="no ID found"):
+    with pytest.raises(Exception, match="No ID found"):
         TextLine.from_alto(xml)
 
 
@@ -175,7 +175,7 @@ def test_textline_alto_missing_box_attributes() -> None:
     xml = etree.fromstring(
         """<TextLine ID="tl-id" HPOS="1" VPOS="2" WIDTH="3"></TextLine>"""
     )
-    with pytest.raises(Exception, match="missing one of the box attributes"):
+    with pytest.raises(Exception, match="Missing one of the box attributes"):
         TextLine.from_alto(xml)
 
 
@@ -184,7 +184,7 @@ def test_textline_alto_no_text_elements() -> None:
         <TextLine ID="tl-id" HPOS="1" VPOS="2" WIDTH="3" HEIGHT="4">
         </TextLine>
     """)
-    with pytest.raises(Exception, match="no text elements found"):
+    with pytest.raises(Exception, match="No text elements found"):
         TextLine.from_alto(xml)
 
 
@@ -247,13 +247,13 @@ def test_textregion_simple_parsing_example() -> None:
 
 
 def test_textregion_wrong_element() -> None:
-    with pytest.raises(Exception, match="wrong element given"):
+    with pytest.raises(Exception, match="Wrong element given"):
         TextRegion.from_xml(etree.fromstring("<WRONG>!!!</WRONG>"))
 
 
 def test_textregion_no_id() -> None:
     xml = etree.fromstring("<TextRegion></TextRegion>")
-    with pytest.raises(Exception, match="no id found"):
+    with pytest.raises(Exception, match="No id found"):
         TextRegion.from_xml(xml)
 
 
@@ -267,7 +267,7 @@ def test_textregion_no_coords() -> None:
             </TextLine>
         </TextRegion>
     """)
-    with pytest.raises(Exception, match="no Coords element found"):
+    with pytest.raises(Exception, match="No Coords element found"):
         TextRegion.from_xml(xml)
 
 
@@ -291,7 +291,7 @@ def test_textregion_alto_example() -> None:
 
 
 def test_textregion_alto_wrong_element() -> None:
-    with pytest.raises(Exception, match="wrong element given"):
+    with pytest.raises(Exception, match="Wrong element given"):
         TextRegion.from_alto(etree.fromstring("<WRONG>!!!</WRONG>"))
 
 
@@ -299,7 +299,7 @@ def test_textregion_alto_no_id() -> None:
     xml = etree.fromstring(
         """<TextBlock HPOS="1" VPOS="2" WIDTH="3" HEIGHT="4"></TextBlock>"""
     )
-    with pytest.raises(Exception, match="no ID found"):
+    with pytest.raises(Exception, match="No ID found"):
         TextRegion.from_alto(xml)
 
 
@@ -307,7 +307,7 @@ def test_textregion_alto_missing_box_attributes() -> None:
     xml = etree.fromstring(
         """<TextBlock ID="tr-id" HPOS="1" VPOS="2" WIDTH="3"></TextBlock>"""
     )
-    with pytest.raises(Exception, match="missing one of the box attributes"):
+    with pytest.raises(Exception, match="Missing one of the box attributes"):
         TextRegion.from_alto(xml)
 
 
@@ -316,7 +316,7 @@ def test_textregion_alto_no_textlines() -> None:
         <TextBlock ID="tr-id" HPOS="1" VPOS="2" WIDTH="3" HEIGHT="4">
         </TextBlock>
     """)
-    with pytest.raises(Exception, match="no TextLine elements found"):
+    with pytest.raises(Exception, match="No TextLine elements found"):
         TextRegion.from_alto(xml)
 
 
@@ -432,13 +432,13 @@ def test_page_from_element_example() -> None:
 
 
 def test_page_wrong_element() -> None:
-    with pytest.raises(Exception, match="wrong element given"):
+    with pytest.raises(Exception, match="Wrong element given"):
         Page.from_xml(etree.fromstring("<WRONG>!!!</WRONG>"))
 
 
 def test_page_no_filename() -> None:
     xml = "<Page></Page>"
-    with pytest.raises(Exception, match="no filename found"):
+    with pytest.raises(Exception, match="No filename found"):
         Page.from_xml(etree.fromstring(xml))
 
 
@@ -574,19 +574,19 @@ def test_page_from_alto_example() -> None:
 
 
 def test_page_alto_wrong_element() -> None:
-    with pytest.raises(Exception, match="wrong element given"):
+    with pytest.raises(Exception, match="Wrong element given"):
         Page.from_alto(etree.fromstring("<WRONG>!!!</WRONG>"))
 
 
 def test_page_alto_no_description() -> None:
     xml = etree.fromstring("<alto></alto>")
-    with pytest.raises(Exception, match="no Description element found"):
+    with pytest.raises(Exception, match="No Description element found"):
         Page.from_alto(xml)
 
 
 def test_page_alto_no_source_image_information() -> None:
     xml = etree.fromstring("<alto><Description></Description></alto>")
-    with pytest.raises(Exception, match="no sourceImageInformation element found"):
+    with pytest.raises(Exception, match="No sourceImageInformation element found"):
         Page.from_alto(xml)
 
 
@@ -598,7 +598,7 @@ def test_page_alto_no_filename() -> None:
             </Description>
         </alto>
     """)
-    with pytest.raises(Exception, match="no fileName element found"):
+    with pytest.raises(Exception, match="No fileName element found"):
         Page.from_alto(xml)
 
 
@@ -612,7 +612,7 @@ def test_page_alto_no_layout() -> None:
             </Description>
         </alto>
     """)
-    with pytest.raises(Exception, match="no Layout element found"):
+    with pytest.raises(Exception, match="No Layout element found"):
         Page.from_alto(xml)
 
 
@@ -627,7 +627,7 @@ def test_page_alto_no_page() -> None:
             <Layout></Layout>
         </alto>
     """)
-    with pytest.raises(Exception, match="no Page element found"):
+    with pytest.raises(Exception, match="No Page element found"):
         Page.from_alto(xml)
 
 
@@ -644,7 +644,7 @@ def test_page_alto_no_print_space() -> None:
             </Layout>
         </alto>
     """)
-    with pytest.raises(Exception, match="no PrintSpace element found"):
+    with pytest.raises(Exception, match="No PrintSpace element found"):
         Page.from_alto(xml)
 
 
