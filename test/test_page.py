@@ -271,6 +271,55 @@ def test_textregion_no_coords() -> None:
         TextRegion.from_xml(xml)
 
 
+def test_textregion_alto_example() -> None:
+    tr = TextRegion.from_alto(etree.fromstring("""
+        <TextBlock ID="tr-id" HPOS="1" VPOS="2" WIDTH="3" HEIGHT="4">
+            <TextLine ID="tl-1" HPOS="2" VPOS="3" WIDTH="4" HEIGHT="5">
+                <String CONTENT="foo"/>
+            </TextLine>
+        </TextBlock>
+    """))
+    assert tr.id == "tr-id"
+    assert tr.coords == Coords.parse("1,2 4,2 4,6 1,6")
+    assert tr.textlines == {
+        "tl-1": TextLine(
+            id="tl-1",
+            coords=Coords.parse("2,3 6,3 6,8 2,8"),
+            text="foo",
+        )
+    }
+
+
+def test_textregion_alto_wrong_element() -> None:
+    with pytest.raises(Exception, match="wrong element given"):
+        TextRegion.from_alto(etree.fromstring("<WRONG>!!!</WRONG>"))
+
+
+def test_textregion_alto_no_id() -> None:
+    xml = etree.fromstring(
+        """<TextBlock HPOS="1" VPOS="2" WIDTH="3" HEIGHT="4"></TextBlock>"""
+    )
+    with pytest.raises(Exception, match="no ID found"):
+        TextRegion.from_alto(xml)
+
+
+def test_textregion_alto_missing_box_attributes() -> None:
+    xml = etree.fromstring(
+        """<TextBlock ID="tr-id" HPOS="1" VPOS="2" WIDTH="3"></TextBlock>"""
+    )
+    with pytest.raises(Exception, match="missing one of the box attributes"):
+        TextRegion.from_alto(xml)
+
+
+def test_textregion_alto_no_textlines() -> None:
+    xml = etree.fromstring("""
+        <TextBlock ID="tr-id" HPOS="1" VPOS="2" WIDTH="3" HEIGHT="4">
+        </TextBlock>
+    """)
+    with pytest.raises(Exception, match="no TextLine elements found"):
+        TextRegion.from_alto(xml)
+
+
 @given(st_text_lines, st_text_regions)
 def test_textregion_line_lookup(line: TextLine, region: TextRegion) -> None:
     assume(not line.id in region.textlines)
