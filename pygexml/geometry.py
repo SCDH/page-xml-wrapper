@@ -47,6 +47,17 @@ class Polygon:
         if len(self.points) < 1:
             raise GeometryError("Polygon: points must not be empty")
 
+    @classmethod
+    def from_box(cls, box: Box) -> "Polygon":
+        return cls(
+            points=[
+                box.top_left,
+                Point(x=box.bottom_right.x, y=box.top_left.y),
+                box.bottom_right,
+                Point(x=box.top_left.x, y=box.bottom_right.y),
+            ]
+        )
+
     def bounding_box(self) -> Box:
         min_x = min(point.x for point in self.points)
         max_x = max(point.x for point in self.points)

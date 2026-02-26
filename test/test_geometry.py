@@ -95,6 +95,17 @@ def test_polygon_construction_without_points() -> None:
         Polygon(points=[])
 
 
+def test_polygon_from_box_example() -> None:
+    box = Box(Point(17, 17), Point(42, 42))
+    polygon = Polygon.from_box(box)
+    assert polygon.points == [
+        Point(17, 17),
+        Point(42, 17),
+        Point(42, 42),
+        Point(17, 42),
+    ]
+
+
 @given(st_polygons)
 def test_polygon_bounding_box_corners(polygon: Polygon) -> None:
     points = polygon.points
@@ -112,3 +123,10 @@ def test_polygon_bounding_box_contains(polygon: Polygon) -> None:
     bounding_box = polygon.bounding_box()
     for point in polygon.points:
         assert bounding_box.contains(point)
+
+
+@given(st_polygons)
+def test_polygon_bounding_box_roundtrip(polygon: Polygon) -> None:
+    bounding_box = polygon.bounding_box()
+    box_polygon = Polygon.from_box(bounding_box)
+    assert box_polygon.bounding_box() == bounding_box
