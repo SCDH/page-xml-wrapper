@@ -26,6 +26,15 @@ class Box:
         ):
             raise GeometryError("Box: top left is not top left")
 
+    @classmethod
+    def from_top_left_width_height(
+        cls, top_left: Point, width: int, height: int
+    ) -> "Box":
+        return cls(
+            top_left=top_left,
+            bottom_right=Point(x=top_left.x + width, y=top_left.y + height),
+        )
+
     def width(self) -> int:
         return self.bottom_right.x - self.top_left.x
 

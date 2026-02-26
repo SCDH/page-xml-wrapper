@@ -48,6 +48,23 @@ def test_box_construction_exception(pp: tuple[Point, Point]) -> None:
         Box(top_left=br, bottom_right=tl)  # flipped points!
 
 
+def test_box_construction_width_height_example() -> None:
+    tl = Point(17, 17)
+    box = Box.from_top_left_width_height(top_left=tl, width=25, height=25)
+    assert box.top_left == tl
+    assert box.bottom_right == Point(42, 42)
+
+
+@given(st_box_points())
+def test_box_construction_width_height(pp: tuple[Point, Point]) -> None:
+    tl, br = pp
+    box = Box.from_top_left_width_height(
+        top_left=tl, width=br.x - tl.x, height=br.y - tl.y
+    )
+    assert box.top_left == tl
+    assert box.bottom_right == br
+
+
 @given(st_boxes)
 def test_box_width(box: Box) -> None:
     assert box.width() == abs(box.bottom_right.x - box.top_left.x)
