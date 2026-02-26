@@ -26,6 +26,10 @@ class PageXMLError(Exception):
     pass
 
 
+class ALTOXMLError(Exception):
+    pass
+
+
 @dataclass
 class Coords(DataClassJsonMixin):
     polygon: Polygon
@@ -112,6 +116,40 @@ class TextLine(DataClassJsonMixin):
             coords=Coords.parse(str(coords_element.attrib["points"])),
             text=text_element.text if text_element.text is not None else "",
         )
+
+    @classmethod
+    def from_alto(cls, element: Element) -> "TextLine":
+        if QName(element).localname != "TextLine":
+            raise ALTOXMLError("TextLine: wrong element given")
+        if "ID" not in element.attrib:
+            raise ALTOXMLError("TextLine: no ID found")
+
+        box_attrs = ["HPOS", "VPOS", "WIDTH", "HEIGHT"]
+        if not all(attr in element.attrib for attr in box_attrs):
+            raise ALTOXMLError("TextLine: missing one of the box attributes")
+        coords: Coords = Coords.from_box(
+            Box.from_top_left_width_height(
+                top_left=Point(
+                    x=int(element.attrib["HPOS"]), y=int(element.attrib["VPOS"])
+                ),
+                width=int(element.attrib["WIDTH"]),
+                height=int(element.attrib["HEIGHT"]),
+            )
+        )
+
+        if len(element) == 0:
+            raise ALTOXMLError("TextLine: no text elements found")
+
+        text: str = ""
+        for child in element:
+            match QName(child).localname:
+                case "String":
+                    if "CONTENT" in child.attrib:
+                        text += str(child.attrib["CONTENT"])
+                case "SP":
+                    text += " "
+
+        return TextLine(id=str(element.attrib["ID"]), coords=coords, text=text)
 
     def words(self) -> Iterable[str]:
         return self.text.split()

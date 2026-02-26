@@ -143,6 +143,61 @@ def test_textline_empty_text() -> None:
     assert TextLine.from_xml(xml).text == ""
 
 
+def test_textline_alto_example() -> None:
+    tl = TextLine.from_alto(etree.fromstring("""
+        <TextLine ID="tl-id" HPOS="1" VPOS="2" WIDTH="3" HEIGHT="4">
+            <String CONTENT="foo"/>
+            <SP/>
+            <String CONTENT="bar"/>
+        </TextLine>
+    """))
+    assert tl.id == "tl-id"
+    assert tl.coords == Coords.from_box(
+        Box(top_left=Point(1, 2), bottom_right=Point(4, 6))
+    )
+    assert tl.text == "foo bar"
+
+
+def test_textline_alto_wrong_element() -> None:
+    with pytest.raises(Exception, match="wrong element given"):
+        TextLine.from_alto(etree.fromstring("<WRONG>!!!</WRONG>"))
+
+
+def test_textline_alto_no_id() -> None:
+    xml = etree.fromstring(
+        """<TextLine HPOS="1" VPOS="2" WIDTH="3" HEIGHT="4"></TextLine>"""
+    )
+    with pytest.raises(Exception, match="no ID found"):
+        TextLine.from_alto(xml)
+
+
+def test_textline_alto_missing_box_attributes() -> None:
+    xml = etree.fromstring(
+        """<TextLine ID="tl-id" HPOS="1" VPOS="2" WIDTH="3"></TextLine>"""
+    )
+    with pytest.raises(Exception, match="missing one of the box attributes"):
+        TextLine.from_alto(xml)
+
+
+def test_textline_alto_no_text_elements() -> None:
+    xml = etree.fromstring("""
+        <TextLine ID="tl-id" HPOS="1" VPOS="2" WIDTH="3" HEIGHT="4">
+        </TextLine>
+    """)
+    with pytest.raises(Exception, match="no text elements found"):
+        TextLine.from_alto(xml)
+
+
+def test_textline_alto_empty_text() -> None:
+    xml = etree.fromstring("""
+        <TextLine ID="tl-id" HPOS="1" VPOS="2" WIDTH="3" HEIGHT="4">
+            <String/>
+            <SP/>
+        </TextLine>
+    """)
+    assert TextLine.from_alto(xml).text == " "
+
+
 def test_textline_simple_words() -> None:
     tl = TextLine("", Coords.parse("1,2 3,4"), "foo  bar baz ")
     assert tl.words() == ["foo", "bar", "baz"]
