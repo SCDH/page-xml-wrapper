@@ -3,7 +3,7 @@ from re import Pattern, compile
 from warnings import warn
 from dataclasses import dataclass
 from dataclasses_json import DataClassJsonMixin
-from typing import ClassVar
+from typing import ClassVar, TypeAlias
 from collections.abc import Iterable
 from lxml import etree
 from lxml.etree import _Element as Element, QName
@@ -83,7 +83,7 @@ class Coords(DataClassJsonMixin):
         return " ".join(str(p) for p in self.polygon.points)
 
 
-type ID = str
+ID: TypeAlias = str
 
 
 @dataclass
