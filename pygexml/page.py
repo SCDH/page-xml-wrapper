@@ -83,9 +83,12 @@ class Coords(DataClassJsonMixin):
         return " ".join(str(p) for p in self.polygon.points)
 
 
+type ID = str
+
+
 @dataclass
 class TextLine(DataClassJsonMixin):
-    id: str
+    id: ID
     coords: Coords
     text: str
 
@@ -152,9 +155,9 @@ class TextLine(DataClassJsonMixin):
 
 @dataclass
 class TextRegion(DataClassJsonMixin):
-    id: str
+    id: ID
     coords: Coords
-    textlines: dict[str, TextLine]
+    textlines: dict[ID, TextLine]
 
     @classmethod
     def from_xml(cls, element: Element) -> "TextRegion":
@@ -197,7 +200,7 @@ class TextRegion(DataClassJsonMixin):
             )
         )
 
-        textlines: dict[str, TextLine] = {}
+        textlines: dict[ID, TextLine] = {}
         for child in element:
             if QName(child).localname == "TextLine":
                 tl = TextLine.from_alto(child)
@@ -210,7 +213,7 @@ class TextRegion(DataClassJsonMixin):
             id=str(element.attrib["ID"]), coords=coords, textlines=textlines
         )
 
-    def lookup_textline(self, id: str) -> TextLine | None:
+    def lookup_textline(self, id: ID) -> TextLine | None:
         return self.textlines.get(id)
 
     def all_text(self) -> Iterable[str]:
@@ -223,7 +226,7 @@ class TextRegion(DataClassJsonMixin):
 @dataclass
 class Page(DataClassJsonMixin):
     image_filename: str
-    regions: dict[str, TextRegion]
+    regions: dict[ID, TextRegion]
 
     @classmethod
     def from_xml(cls, element: Element) -> "Page":
@@ -304,7 +307,7 @@ class Page(DataClassJsonMixin):
         xml_string = path.read_text(encoding=encoding)
         return Page.from_alto_string(xml_string)
 
-    def lookup_region(self, id: str) -> TextRegion | None:
+    def lookup_region(self, id: ID) -> TextRegion | None:
         return self.regions.get(id)
 
     def all_text(self) -> Iterable[str]:

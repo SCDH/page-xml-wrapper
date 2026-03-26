@@ -8,7 +8,7 @@ from lxml import etree
 
 from pygexml.strategies import *
 from pygexml.geometry import Point, Box, Polygon
-from pygexml.page import Coords, TextLine, TextRegion, Page
+from pygexml.page import Coords, ID, TextLine, TextRegion, Page
 
 ############## Tests for Coords ####################
 
@@ -333,7 +333,7 @@ def test_textregion_line_lookup(line: TextLine, region: TextRegion) -> None:
 
 
 @given(st.text(), st_text_regions)
-def test_textregion_line_lookup_not_found(id: str, region: TextRegion) -> None:
+def test_textregion_line_lookup_not_found(id: ID, region: TextRegion) -> None:
     assume(not id in region.textlines)
     assert region.lookup_textline(id) is None
 
