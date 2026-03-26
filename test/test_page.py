@@ -208,6 +208,11 @@ def test_textline_words(tl: TextLine) -> None:
     assert tl.words() == tl.text.split()
 
 
+def test_textline_serialization_roundtrip() -> None:
+    tl = TextLine(id="tl-id", coords=Coords.parse("1,2 3,4"), text="foo bar")
+    assert TextLine.from_dict(tl.to_dict()) == tl
+
+
 ####### Tests for TextRegion ###############
 
 
@@ -352,6 +357,17 @@ def test_textregion_all_arbitrary_text_and_words(region: TextRegion) -> None:
     assert list(region.all_words()) == [
         w for tl in region.textlines.values() for w in tl.words()
     ]
+
+
+def test_textregion_serialization_roundtrip() -> None:
+    tr = TextRegion(
+        id="tr-id",
+        coords=Coords.parse("1,2 3,4"),
+        textlines={
+            "tl-1": TextLine(id="tl-1", coords=Coords.parse("1,2 3,4"), text="foo")
+        },
+    )
+    assert TextRegion.from_dict(tr.to_dict()) == tr
 
 
 ############### Tests for Page ####################
@@ -787,3 +803,21 @@ def test_page_all_arbitrary_text_and_words(page: Page) -> None:
     assert list(page.all_words()) == [
         w for r in page.regions.values() for w in r.all_words()
     ]
+
+
+def test_page_serialization_roundtrip() -> None:
+    pa = Page(
+        image_filename="a.jpg",
+        regions={
+            "tr-1": TextRegion(
+                id="tr-1",
+                coords=Coords.parse("1,2 3,4"),
+                textlines={
+                    "tl-1": TextLine(
+                        id="tl-1", coords=Coords.parse("1,2 3,4"), text="foo"
+                    )
+                },
+            )
+        },
+    )
+    assert Page.from_dict(pa.to_dict()) == pa
