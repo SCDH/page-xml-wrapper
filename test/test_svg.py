@@ -137,6 +137,28 @@ def test_page_to_svg_string_arbitrary_with_dimensions(page: Page) -> None:
     assert root.tag == f"{{{SVG_NS}}}svg"
 
 
+def test_page_to_svg_includes_style_by_default() -> None:
+    svg = page_to_svg(make_page())
+    assert svg.find(f"{{{SVG_NS}}}style") is not None
+
+
+def test_page_to_svg_style_contains_hover_rule() -> None:
+    svg = page_to_svg(make_page())
+    style = svg.find(f"{{{SVG_NS}}}style")
+    assert style is not None
+    assert ".TextLine:hover" in (style.text or "")
+
+
+def test_page_to_svg_no_style_when_disabled() -> None:
+    svg = page_to_svg(make_page(), include_style=False)
+    assert svg.find(f"{{{SVG_NS}}}style") is None
+
+
+def test_page_to_svg_string_no_style_when_disabled() -> None:
+    result = page_to_svg_string(make_page(), include_style=False)
+    assert "<style" not in result
+
+
 ############## Tests for text rendering ####################
 
 

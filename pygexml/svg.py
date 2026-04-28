@@ -69,7 +69,21 @@ def _region_to_svg(region: TextRegion) -> Element:
     return g
 
 
-def page_to_svg(page: Page) -> Element:
+def _default_style(width: int, height: int) -> Element:
+    font_size = max(width, height) // 60
+    style = etree.Element(f"{{{SVG_NS}}}style")
+    style.text = (
+        f"\n"
+        f"    path.Coords {{ fill: rgba(100,160,255,0.12); stroke: steelblue; stroke-width: {max(width, height) // 1500}; }}\n"
+        f"    path.Baseline {{ stroke: #e74c3c; stroke-width: {max(width, height) // 2000}; fill: none; }}\n"
+        f"    .TextLine text {{ font-size: {font_size}px; font-family: serif; fill: #000; opacity: 0; transition: opacity 0.15s; }}\n"
+        f"    .TextLine:hover text {{ opacity: 1; }}\n"
+        f"  "
+    )
+    return style
+
+
+def page_to_svg(page: Page, include_style: bool = True) -> Element:
     if page.image.width is None:
         raise SVGError("Image width is required for SVG generation")
     if page.image.height is None:
@@ -102,11 +116,18 @@ def page_to_svg(page: Page) -> Element:
         },
     )
 
+    if include_style:
+        svg.insert(0, _default_style(width, height))
+
     for region in page.regions.values():
         svg.append(_region_to_svg(region))
 
     return svg
 
 
-def page_to_svg_string(page: Page) -> str:
-    return etree.tostring(page_to_svg(page), encoding="unicode", pretty_print=True)
+def page_to_svg_string(page: Page, include_style: bool = True) -> str:
+    return etree.tostring(
+        page_to_svg(page, include_style=include_style),
+        encoding="unicode",
+        pretty_print=True,
+    )
