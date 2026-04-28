@@ -8,6 +8,7 @@ from lxml import etree
 
 from pygexml.strategies import *
 from pygexml.geometry import Point, Box, Polygon
+from pygexml.image import Image
 from pygexml.page import Coords, ID, TextLine, TextRegion, Page
 
 ############## Tests for Coords ####################
@@ -410,7 +411,7 @@ def test_page_from_element_example() -> None:
         </Page>
     """))
 
-    assert pa.image_filename == "7895328.jpg"
+    assert pa.image == Image(filename="7895328.jpg", width=4279, height=5315)
     assert pa.regions == {
         "tr-1": TextRegion(
             id="tr-1",
@@ -454,8 +455,20 @@ def test_page_wrong_element() -> None:
 
 def test_page_no_filename() -> None:
     xml = "<Page></Page>"
-    with pytest.raises(Exception, match="No filename found"):
+    with pytest.raises(Exception, match="No image filename found"):
         Page.from_xml(etree.fromstring(xml))
+
+
+def test_page_no_image_width() -> None:
+    xml = """<Page imageFilename="a.jpg" imageHeight="600"></Page>"""
+    pa = Page.from_xml(etree.fromstring(xml))
+    assert pa.image == Image(filename="a.jpg", width=None, height=600)
+
+
+def test_page_no_image_height() -> None:
+    xml = """<Page imageFilename="a.jpg" imageWidth="800"></Page>"""
+    pa = Page.from_xml(etree.fromstring(xml))
+    assert pa.image == Image(filename="a.jpg", width=800, height=None)
 
 
 def test_page_from_string() -> None:
@@ -479,7 +492,7 @@ def test_page_from_string() -> None:
             </Page>
         </PcGts>
     """)  # use default PageXML namespace
-    assert pa.image_filename == "a.jpg"
+    assert pa.image == Image(filename="a.jpg", width=4217, height=1742)
     assert pa.regions == {
         "b": TextRegion(
             id="b",
@@ -515,7 +528,7 @@ def test_from_xml_file_example(tmp_path: Path) -> None:
     xml_filepath.write_text(content, encoding="utf-8")
 
     result = Page.from_xml_file(xml_filepath)
-    assert result.image_filename == "a.jpg"
+    assert result.image == Image(filename="a.jpg", width=4217, height=1742)
     assert result.regions == {
         "b": TextRegion(
             id="b",
@@ -562,7 +575,7 @@ def test_page_from_alto_example() -> None:
             </Layout>
         </alto>
     """))
-    assert pa.image_filename == "a.jpg"
+    assert pa.image == Image(filename="a.jpg", width=None, height=None)
     assert pa.regions == {
         "tr-1": TextRegion(
             id="tr-1",
@@ -587,6 +600,30 @@ def test_page_from_alto_example() -> None:
             },
         ),
     }
+
+
+def test_page_alto_with_dimensions() -> None:
+    pa = Page.from_alto(etree.fromstring("""
+        <alto>
+            <Description>
+                <sourceImageInformation>
+                    <fileName>a.jpg</fileName>
+                </sourceImageInformation>
+            </Description>
+            <Layout>
+                <Page WIDTH="800" HEIGHT="600">
+                    <PrintSpace>
+                        <TextBlock ID="tr-1" HPOS="1" VPOS="2" WIDTH="3" HEIGHT="4">
+                            <TextLine ID="tl-1" HPOS="2" VPOS="3" WIDTH="4" HEIGHT="5">
+                                <String CONTENT="foo"/>
+                            </TextLine>
+                        </TextBlock>
+                    </PrintSpace>
+                </Page>
+            </Layout>
+        </alto>
+    """))
+    assert pa.image == Image(filename="a.jpg", width=800, height=600)
 
 
 def test_page_alto_wrong_element() -> None:
@@ -687,7 +724,7 @@ def test_page_alto_from_string() -> None:
         </alto>
     """
     page = Page.from_alto_string(alto_string)
-    assert page.image_filename == "a.jpg"
+    assert page.image == Image(filename="a.jpg", width=None, height=None)
     assert page.regions == {
         "tr-1": TextRegion(
             id="tr-1",
@@ -730,7 +767,7 @@ def test_page_alto_from_file_example(tmp_path: Path) -> None:
     filepath.write_text(alto_string, encoding="utf-8")
 
     result = Page.from_alto_file(filepath)
-    assert result.image_filename == "a.jpg"
+    assert result.image == Image(filename="a.jpg", width=None, height=None)
     assert result.regions == {
         "tr-1": TextRegion(
             id="tr-1",
@@ -769,7 +806,7 @@ def test_page_region_lookup_not_found(id: str, page: Page) -> None:
 
 def test_page_all_text_and_words() -> None:
     pa = Page(
-        image_filename="a",
+        image=Image(filename="a", width=None, height=None),
         regions={
             "a": TextRegion(
                 id="a",
@@ -807,7 +844,7 @@ def test_page_all_arbitrary_text_and_words(page: Page) -> None:
 
 def test_page_serialization_roundtrip() -> None:
     pa = Page(
-        image_filename="a.jpg",
+        image=Image(filename="a.jpg", width=1920, height=1080),
         regions={
             "tr-1": TextRegion(
                 id="tr-1",
