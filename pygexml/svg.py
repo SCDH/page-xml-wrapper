@@ -12,7 +12,7 @@ class SVGError(Exception):
 
 
 def _coords_path(coords_str: str) -> str:
-    return f"M {coords_str}"
+    return f"M {coords_str} Z"
 
 
 def _baseline_path_d(line: TextLine) -> str:

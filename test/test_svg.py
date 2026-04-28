@@ -101,7 +101,7 @@ def test_page_to_svg_coords_path() -> None:
     assert region_g is not None
     path = region_g.find(f"{{{SVG_NS}}}path")
     assert path is not None
-    assert path.attrib["d"] == "M 0,0 10,0 10,10 0,10"
+    assert path.attrib["d"] == "M 0,0 10,0 10,10 0,10 Z"
     assert path.attrib["class"] == "Coords"
 
 
