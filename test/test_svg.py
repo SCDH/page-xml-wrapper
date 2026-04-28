@@ -1,5 +1,6 @@
 import pytest
 from hypothesis import given
+from typing import Any
 from lxml import etree
 from lxml.etree import _Element as Element
 
@@ -11,8 +12,8 @@ from pygexml.svg import SVGError, page_to_svg, page_to_svg_string
 SVG_NS = "http://www.w3.org/2000/svg"
 
 
-def make_page(**kwargs) -> Page:
-    defaults: dict = dict(
+def make_page(**kwargs: Any) -> Page:
+    defaults: dict[str, Any] = dict(
         image=Image(filename="a.jpg", width=800, height=600),
         regions={},
     )
@@ -132,3 +133,65 @@ def test_page_to_svg_string_arbitrary_with_dimensions(page: Page) -> None:
     result = page_to_svg_string(page)
     root = etree.fromstring(result.encode("utf-8"))
     assert root.tag == f"{{{SVG_NS}}}svg"
+
+
+############## Tests for text rendering ####################
+
+
+def make_page_with_line(text: str = "foo") -> Page:
+    return make_page(
+        regions={
+            "r1": TextRegion(
+                id="r1",
+                coords=Coords.parse("0,0 10,0 10,10 0,10"),
+                textlines={
+                    "l1": TextLine(
+                        id="l1", coords=Coords.parse("1,1 9,1 9,9 1,9"), text=text
+                    ),
+                },
+            ),
+        }
+    )
+
+
+def get_line_g(page: Page) -> Element:
+    svg = page_to_svg(page)
+    region_g = svg.find(f"{{{SVG_NS}}}g")
+    assert region_g is not None
+    line_g = region_g.find(f"{{{SVG_NS}}}g")
+    assert line_g is not None
+    return line_g
+
+
+def test_page_to_svg_line_has_baseline_path() -> None:
+    line_g = get_line_g(make_page_with_line())
+    paths = line_g.findall(f"{{{SVG_NS}}}path")
+    assert len(paths) == 2
+    baseline = next(p for p in paths if p.attrib.get("class") == "Baseline")
+    assert baseline.attrib["id"] == "bl-l1"
+
+
+def test_page_to_svg_line_baseline_from_bounding_box() -> None:
+    # coords "1,1 9,1 9,9 1,9": x=[1,9], y=[1,9], y_mid=(1+9)//2=5
+    line_g = get_line_g(make_page_with_line())
+    paths = line_g.findall(f"{{{SVG_NS}}}path")
+    baseline = next(p for p in paths if p.attrib.get("class") == "Baseline")
+    assert baseline.attrib["d"] == "M 1,5 9,5"
+
+
+def test_page_to_svg_line_text_content() -> None:
+    line_g = get_line_g(make_page_with_line("Hallo Welt"))
+    text = line_g.find(f"{{{SVG_NS}}}text")
+    assert text is not None
+    text_path = text.find(f"{{{SVG_NS}}}textPath")
+    assert text_path is not None
+    assert text_path.attrib["href"] == "#bl-l1"
+    tspan = text_path.find(f"{{{SVG_NS}}}tspan")
+    assert tspan is not None
+    assert tspan.text == "Hallo Welt"
+    assert tspan.attrib["class"] == "Text"
+
+
+def test_page_to_svg_line_no_text_element_when_empty() -> None:
+    line_g = get_line_g(make_page_with_line(""))
+    assert line_g.find(f"{{{SVG_NS}}}text") is None

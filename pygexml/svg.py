@@ -14,6 +14,12 @@ def _coords_path(coords_str: str) -> str:
     return f"M {coords_str}"
 
 
+def _baseline_path_d(line: TextLine) -> str:
+    box = line.coords.polygon.bounding_box()
+    y_mid = (box.top_left.y + box.bottom_right.y) // 2
+    return f"M {box.top_left.x},{y_mid} {box.bottom_right.x},{y_mid}"
+
+
 def _line_to_svg(line: TextLine) -> Element:
     g = etree.Element(f"{{{SVG_NS}}}g", attrib={"id": line.id, "class": "TextLine"})
     etree.SubElement(
@@ -24,6 +30,26 @@ def _line_to_svg(line: TextLine) -> Element:
             "class": "Coords",
         },
     )
+    etree.SubElement(
+        g,
+        f"{{{SVG_NS}}}path",
+        attrib={
+            "id": f"bl-{line.id}",
+            "d": _baseline_path_d(line),
+            "class": "Baseline",
+        },
+    )
+    if line.text:
+        text = etree.SubElement(g, f"{{{SVG_NS}}}text")
+        text_path = etree.SubElement(
+            text,
+            f"{{{SVG_NS}}}textPath",
+            attrib={"href": f"#bl-{line.id}", "textLength": "100%"},
+        )
+        tspan = etree.SubElement(
+            text_path, f"{{{SVG_NS}}}tspan", attrib={"class": "Text"}
+        )
+        tspan.text = line.text
     return g
 
 
