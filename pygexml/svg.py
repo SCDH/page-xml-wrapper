@@ -4,6 +4,7 @@ from lxml.etree import _Element as Element
 from .page import Page, TextRegion, TextLine
 
 SVG_NS = "http://www.w3.org/2000/svg"
+XLINK_NS = "http://www.w3.org/1999/xlink"
 
 
 class SVGError(Exception):
@@ -44,7 +45,7 @@ def _line_to_svg(line: TextLine) -> Element:
         text_path = etree.SubElement(
             text,
             f"{{{SVG_NS}}}textPath",
-            attrib={"href": f"#bl-{line.id}", "textLength": "100%"},
+            attrib={f"{{{XLINK_NS}}}href": f"#bl-{line.id}", "textLength": "100%"},
         )
         tspan = etree.SubElement(
             text_path, f"{{{SVG_NS}}}tspan", attrib={"class": "Text"}
@@ -80,7 +81,7 @@ def page_to_svg(page: Page) -> Element:
     svg = etree.Element(
         f"{{{SVG_NS}}}svg",
         # the official way to do it although stubs are wrong:
-        nsmap={None: SVG_NS},  # type: ignore
+        nsmap={None: SVG_NS, "xlink": XLINK_NS},  # type: ignore
         attrib={
             "width": str(width),
             "height": str(height),
@@ -96,7 +97,7 @@ def page_to_svg(page: Page) -> Element:
             "y": "0",
             "width": str(width),
             "height": str(height),
-            "href": page.image.filename,
+            f"{{{XLINK_NS}}}href": page.image.filename,
             "preserveAspectRatio": "none",
         },
     )

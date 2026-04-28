@@ -10,6 +10,7 @@ from pygexml.page import Coords, TextLine, TextRegion, Page
 from pygexml.svg import SVGError, page_to_svg, page_to_svg_string
 
 SVG_NS = "http://www.w3.org/2000/svg"
+XLINK_NS = "http://www.w3.org/1999/xlink"
 
 
 def make_page(**kwargs: Any) -> Page:
@@ -53,7 +54,7 @@ def test_page_to_svg_image_element() -> None:
     images = svg.findall(f"{{{SVG_NS}}}image")
     assert len(images) == 1
     img = images[0]
-    assert img.attrib["href"] == "a.jpg"
+    assert img.attrib[f"{{{XLINK_NS}}}href"] == "a.jpg"
     assert img.attrib["width"] == "800"
     assert img.attrib["height"] == "600"
 
@@ -112,7 +113,7 @@ def test_page_to_svg_string_example() -> None:
     )
     assert isinstance(result, str)
     assert 'xmlns="http://www.w3.org/2000/svg"' in result
-    assert 'href="a.jpg"' in result
+    assert 'xlink:href="a.jpg"' in result
     assert 'viewBox="0 0 800 600"' in result
 
 
@@ -185,7 +186,7 @@ def test_page_to_svg_line_text_content() -> None:
     assert text is not None
     text_path = text.find(f"{{{SVG_NS}}}textPath")
     assert text_path is not None
-    assert text_path.attrib["href"] == "#bl-l1"
+    assert text_path.attrib[f"{{{XLINK_NS}}}href"] == "#bl-l1"
     tspan = text_path.find(f"{{{SVG_NS}}}tspan")
     assert tspan is not None
     assert tspan.text == "Hallo Welt"
