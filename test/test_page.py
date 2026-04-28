@@ -461,14 +461,14 @@ def test_page_no_filename() -> None:
 
 def test_page_no_image_width() -> None:
     xml = """<Page imageFilename="a.jpg" imageHeight="600"></Page>"""
-    with pytest.raises(Exception, match="No image width found"):
-        Page.from_xml(etree.fromstring(xml))
+    pa = Page.from_xml(etree.fromstring(xml))
+    assert pa.image == Image(filename="a.jpg", width=None, height=600)
 
 
 def test_page_no_image_height() -> None:
     xml = """<Page imageFilename="a.jpg" imageWidth="800"></Page>"""
-    with pytest.raises(Exception, match="No image height found"):
-        Page.from_xml(etree.fromstring(xml))
+    pa = Page.from_xml(etree.fromstring(xml))
+    assert pa.image == Image(filename="a.jpg", width=800, height=None)
 
 
 def test_page_from_string() -> None:

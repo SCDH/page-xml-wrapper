@@ -236,18 +236,22 @@ class Page(DataClassJsonMixin):
 
         if "imageFilename" not in element.attrib:
             raise PageXMLError("No image filename found")
-        if "imageWidth" not in element.attrib:
-            raise PageXMLError("No image width found")
-        if "imageHeight" not in element.attrib:
-            raise PageXMLError("No image height found")
 
         regions = find_children(element, "TextRegion")
 
         return Page(
             image=Image(
                 filename=str(element.attrib["imageFilename"]),
-                width=int(element.attrib["imageWidth"]),
-                height=int(element.attrib["imageHeight"]),
+                width=(
+                    int(element.attrib["imageWidth"])
+                    if "imageWidth" in element.attrib
+                    else None
+                ),
+                height=(
+                    int(element.attrib["imageHeight"])
+                    if "imageHeight" in element.attrib
+                    else None
+                ),
             ),
             regions={
                 tr.id: tr for tr in (TextRegion.from_xml(region) for region in regions)
