@@ -1,6 +1,7 @@
+from typing import Any
+
 import pytest
 from hypothesis import given
-from typing import Any
 from lxml import etree
 from lxml.etree import _Element as Element
 
