@@ -68,10 +68,25 @@ st_images = st.builds(
     height=st.one_of(st.none(), st.integers(min_value=1)),
 )
 
+st_images_with_dimensions = st.builds(
+    Image,
+    filename=st_simple_text(),
+    width=st.integers(min_value=1),
+    height=st.integers(min_value=1),
+)
+
 
 @st.composite
 def st_pages(draw):
     image = draw(st_images)
+    regions = {tr.id: tr for tr in draw(st.lists(st_text_regions))}
+    page = Page(image=image, regions=regions)
+    return page
+
+
+@st.composite
+def st_pages_with_dimensions(draw):
+    image = draw(st_images_with_dimensions)
     regions = {tr.id: tr for tr in draw(st.lists(st_text_regions))}
     page = Page(image=image, regions=regions)
     return page
