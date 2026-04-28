@@ -174,11 +174,11 @@ def test_page_to_svg_line_has_baseline_path() -> None:
 
 
 def test_page_to_svg_line_baseline_from_bounding_box() -> None:
-    # coords "1,1 9,1 9,9 1,9": x=[1,9], y=[1,9], y_mid=(1+9)//2=5
+    # coords "1,1 9,1 9,9 1,9": x=[1,9], y=[1,9], height=8, y_baseline=1+8*2//3=6
     line_g = get_line_g(make_page_with_line())
     paths = line_g.findall(f"{{{SVG_NS}}}path")
     baseline = next(p for p in paths if p.attrib.get("class") == "Baseline")
-    assert baseline.attrib["d"] == "M 1,5 9,5"
+    assert baseline.attrib["d"] == "M 1,6 9,6"
 
 
 def test_page_to_svg_line_text_content() -> None:

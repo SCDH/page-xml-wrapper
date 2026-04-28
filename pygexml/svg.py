@@ -17,8 +17,8 @@ def _coords_path(coords_str: str) -> str:
 
 def _baseline_path_d(line: TextLine) -> str:
     box = line.coords.polygon.bounding_box()
-    y_mid = (box.top_left.y + box.bottom_right.y) // 2
-    return f"M {box.top_left.x},{y_mid} {box.bottom_right.x},{y_mid}"
+    y_baseline = box.top_left.y + (box.bottom_right.y - box.top_left.y) * 2 // 3
+    return f"M {box.top_left.x},{y_baseline} {box.bottom_right.x},{y_baseline}"
 
 
 def _line_to_svg(line: TextLine) -> Element:
