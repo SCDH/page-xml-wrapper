@@ -37,7 +37,7 @@ jobs:
           python-version: "3.14"
           cache: pip
       - run: pip install ".[docs,strategies]"
-      - run: pdoc -o .api_docs pygexml/*.py
+      - run: pdoc -o .api_docs pygexml
       - run: tree .api_docs
       - uses: actions/upload-pages-artifact@v3
         with:
