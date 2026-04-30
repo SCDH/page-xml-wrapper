@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pygexml"
-version = "0.2.1"
+version = "0.3.0"
 description = "A minimal Python wrapper around the PAGE-XML format for OCR output"
 readme = "README.md"
 license = "MIT"
