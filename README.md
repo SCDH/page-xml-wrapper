@@ -2,7 +2,7 @@
 
 A minimal Python wrapper around the [PAGE-XML][page-xml] format for OCR output. Can also import [ALTO-XML][alto-xml].
 
-[![pygexml checks, tests and docs][workflows-badge]][workflows] [![API docs online][api-docs-badge]][api-docs]
+[![pygexml checks, tests and docs][workflows-badge]][workflows] [![pypi release][pypi-badge]][pypi] [![API docs online][api-docs-badge]][api-docs]
 
 ## Installation
 
@@ -85,9 +85,11 @@ Released under the [MIT License](LICENSE).
 [workflows-badge]: https://github.com/SCDH/pygexml/actions/workflows/checks_tests_docs.yml/badge.svg
 [hypothesis]: https://hypothesis.readthedocs.io
 [dcj]: https://pypi.org/project/dataclasses-json/
+[pypi]: https://pypi.org/project/pygexml/
+[pypi-badge]: https://img.shields.io/badge/release-pypi.org-blue?logo=pypi&logoColor=lightgrey
 [api-docs]: https://scdh.github.io/pygexml
 [api-docs-strategies]: https://scdh.github.io/pygexml/pygexml/strategies.html
-[api-docs-badge]: https://img.shields.io/badge/API%20docs-online-blue?logo=gitbook&logoColor=lightgrey
+[api-docs-badge]: https://img.shields.io/badge/API%20docs-online-lightblue?logo=gitbook&logoColor=lightgrey
 [gh-issues]: https://github.com/SCDH/pygexml/issues
 [gh-prs]: https://github.com/SCDH/pygexml/pulls
 [gh-memowe]: https://github.com/memowe
