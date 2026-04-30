@@ -9,6 +9,7 @@ from lxml import etree
 from lxml.etree import _Element as Element, QName
 
 from .geometry import Point, Box, Polygon, GeometryError
+from .image import Image
 
 
 def find_child(element: Element, name: str) -> Element | None:
@@ -225,7 +226,7 @@ class TextRegion(DataClassJsonMixin):
 
 @dataclass
 class Page(DataClassJsonMixin):
-    image_filename: str
+    image: Image
     regions: dict[ID, TextRegion]
 
     @classmethod
@@ -234,12 +235,24 @@ class Page(DataClassJsonMixin):
             raise PageXMLError("Wrong element given")
 
         if "imageFilename" not in element.attrib:
-            raise PageXMLError("No filename found")
+            raise PageXMLError("No image filename found")
 
         regions = find_children(element, "TextRegion")
 
         return Page(
-            image_filename=str(element.attrib["imageFilename"]),
+            image=Image(
+                filename=str(element.attrib["imageFilename"]),
+                width=(
+                    int(element.attrib["imageWidth"])
+                    if "imageWidth" in element.attrib
+                    else None
+                ),
+                height=(
+                    int(element.attrib["imageHeight"])
+                    if "imageHeight" in element.attrib
+                    else None
+                ),
+            ),
             regions={
                 tr.id: tr for tr in (TextRegion.from_xml(region) for region in regions)
             },
@@ -289,8 +302,22 @@ class Page(DataClassJsonMixin):
 
         text_blocks = find_children(printspace_element, "TextBlock")
 
+        # ALTO allows for float values, but we convert to int for consistency with PAGE XML
+        image_width = (
+            int(float(page_element.attrib["WIDTH"]))
+            if "WIDTH" in page_element.attrib
+            else None
+        )
+        image_height = (
+            int(float(page_element.attrib["HEIGHT"]))
+            if "HEIGHT" in page_element.attrib
+            else None
+        )
+
         return Page(
-            image_filename=image_filename,
+            image=Image(
+                filename=image_filename, width=image_width, height=image_height
+            ),
             regions={
                 tb.id: tb for tb in (TextRegion.from_alto(tb) for tb in text_blocks)
             },
