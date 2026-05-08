@@ -88,9 +88,26 @@ ID: TypeAlias = str
 
 
 @dataclass
-class TextLine(DataClassJsonMixin):
+class LayoutLine(DataClassJsonMixin):
     id: ID
     coords: Coords
+
+
+@dataclass
+class LayoutRegion(DataClassJsonMixin):
+    id: ID
+    coords: Coords
+    textlines: dict[ID, LayoutLine]
+
+
+@dataclass
+class PageLayout(DataClassJsonMixin):
+    image: Image
+    regions: dict[ID, LayoutRegion]
+
+
+@dataclass
+class TextLine(LayoutLine, DataClassJsonMixin):
     text: str
 
     @classmethod
@@ -155,10 +172,8 @@ class TextLine(DataClassJsonMixin):
 
 
 @dataclass
-class TextRegion(DataClassJsonMixin):
-    id: ID
-    coords: Coords
-    textlines: dict[ID, TextLine]
+class TextRegion(LayoutRegion, DataClassJsonMixin):
+    textlines: dict[ID, TextLine]  # type: ignore[assignment]
 
     @classmethod
     def from_xml(cls, element: Element) -> "TextRegion":
@@ -225,9 +240,8 @@ class TextRegion(DataClassJsonMixin):
 
 
 @dataclass
-class Page(DataClassJsonMixin):
-    image: Image
-    regions: dict[ID, TextRegion]
+class Page(PageLayout, DataClassJsonMixin):
+    regions: dict[ID, TextRegion]  # type: ignore[assignment]
 
     @classmethod
     def from_xml(cls, element: Element) -> "Page":
