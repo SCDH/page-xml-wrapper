@@ -329,8 +329,12 @@ def test_textregion_alto_no_textlines() -> None:
 @given(st_text_lines, st_text_regions)
 def test_textregion_line_lookup(line: TextLine, region: TextRegion) -> None:
     assume(not line.id in region.textlines)
-    region.textlines[line.id] = line
-    assert region.lookup_textline(line.id) == line
+    region_with_line = TextRegion(
+        id=region.id,
+        coords=region.coords,
+        textlines={**region.textlines, line.id: line},
+    )
+    assert region_with_line.lookup_textline(line.id) == line
 
 
 @given(st.text(), st_text_regions)
@@ -794,8 +798,11 @@ def test_page_alto_from_missing_file(tmp_path: Path) -> None:
 @given(st_text_regions, st_pages())
 def test_page_region_lookup(region: TextRegion, page: Page) -> None:
     assume(region.id not in page.regions)
-    page.regions[region.id] = region
-    assert page.lookup_region(region.id) == region
+    page_with_region = Page(
+        image=page.image,
+        regions={**page.regions, region.id: region},
+    )
+    assert page_with_region.lookup_region(region.id) == region
 
 
 @given(st.text(), st_pages())

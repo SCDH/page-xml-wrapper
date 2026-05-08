@@ -4,7 +4,7 @@ from warnings import warn
 from dataclasses import dataclass
 from dataclasses_json import DataClassJsonMixin
 from typing import ClassVar, TypeAlias
-from collections.abc import Iterable
+from collections.abc import Iterable, Mapping
 from lxml import etree
 from lxml.etree import _Element as Element, QName
 
@@ -97,13 +97,13 @@ class LayoutLine(DataClassJsonMixin):
 class LayoutRegion(DataClassJsonMixin):
     id: ID
     coords: Coords
-    textlines: dict[ID, LayoutLine]
+    textlines: Mapping[ID, LayoutLine]
 
 
 @dataclass
 class PageLayout(DataClassJsonMixin):
     image: Image
-    regions: dict[ID, LayoutRegion]
+    regions: Mapping[ID, LayoutRegion]
 
 
 @dataclass
@@ -173,7 +173,7 @@ class TextLine(LayoutLine, DataClassJsonMixin):
 
 @dataclass
 class TextRegion(LayoutRegion, DataClassJsonMixin):
-    textlines: dict[ID, TextLine]  # type: ignore[assignment]
+    textlines: Mapping[ID, TextLine]  # pyright: ignore[reportIncompatibleVariableOverride]  # fmt: skip
 
     @classmethod
     def from_xml(cls, element: Element) -> "TextRegion":
@@ -241,7 +241,7 @@ class TextRegion(LayoutRegion, DataClassJsonMixin):
 
 @dataclass
 class Page(PageLayout, DataClassJsonMixin):
-    regions: dict[ID, TextRegion]  # type: ignore[assignment]
+    regions: Mapping[ID, TextRegion]  # pyright: ignore[reportIncompatibleVariableOverride]  # fmt: skip
 
     @classmethod
     def from_xml(cls, element: Element) -> "Page":
