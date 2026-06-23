@@ -1,7 +1,7 @@
 from pathlib import Path
 from re import Pattern, compile
 from warnings import warn
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from dataclasses_json import DataClassJsonMixin
 from typing import ClassVar, TypeAlias
 from collections.abc import Iterable, Mapping
@@ -232,9 +232,26 @@ class TextRegion(LayoutRegion, DataClassJsonMixin):
         return (w for tl in self.textlines.values() for w in tl.words())
 
 
+def _parse_reading_order_group(element: Element) -> list[ID]:
+    children = list(element)
+    if QName(element).localname in ("OrderedGroup", "OrderedGroupIndexed"):
+        children.sort(key=lambda c: int(c.attrib.get("index", 0)))
+    result: list[ID] = []
+    for child in children:
+        name = QName(child).localname
+        if name in ("RegionRef", "RegionRefIndexed") and "regionRef" in child.attrib:
+            result.append(
+                str(child.attrib["regionRef"])
+            )  # silently skip malformed entries without regionRef
+        elif "Group" in name:
+            result.extend(_parse_reading_order_group(child))
+    return result
+
+
 @dataclass
 class Page(PageLayout, DataClassJsonMixin):
     regions: Mapping[ID, TextRegion]  # pyright: ignore[reportIncompatibleVariableOverride]  # fmt: skip
+    reading_order: list[ID] | None = field(default=None)
 
     @classmethod
     def from_xml(cls, element: Element) -> "Page":
@@ -245,6 +262,14 @@ class Page(PageLayout, DataClassJsonMixin):
             raise PageXMLError("No image filename found")
 
         regions = find_children(element, "TextRegion")
+
+        reading_order_element = find_child(element, "ReadingOrder")
+        reading_order: list[ID] | None = None
+        if reading_order_element is not None:
+            for child in reading_order_element:
+                if "Group" in QName(child).localname:
+                    reading_order = _parse_reading_order_group(child)
+                    break
 
         return Page(
             image=Image(
@@ -263,6 +288,7 @@ class Page(PageLayout, DataClassJsonMixin):
             regions={
                 tr.id: tr for tr in (TextRegion.from_xml(region) for region in regions)
             },
+            reading_order=reading_order,
         )
 
     @classmethod
@@ -344,8 +370,22 @@ class Page(PageLayout, DataClassJsonMixin):
     def lookup_region(self, id: ID) -> TextRegion | None:
         return self.regions.get(id)
 
+    def regions_ordered(self) -> list[TextRegion]:
+        if self.reading_order is None:
+            return list(self.regions.values())
+        seen: set[ID] = set()
+        result: list[TextRegion] = []
+        for rid in self.reading_order:
+            if (region := self.regions.get(rid)) is not None:
+                result.append(region)
+                seen.add(rid)
+        result.extend(r for rid, r in self.regions.items() if rid not in seen)
+        return result
+
     def all_text(self) -> Iterable[str]:
-        return (line for region in self.regions.values() for line in region.all_text())
+        return (line for region in self.regions_ordered() for line in region.all_text())
 
     def all_words(self) -> Iterable[str]:
-        return (word for region in self.regions.values() for word in region.all_words())
+        return (
+            word for region in self.regions_ordered() for word in region.all_words()
+        )

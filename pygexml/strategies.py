@@ -80,13 +80,13 @@ st_images_with_dimensions = st.builds(
 def st_pages(draw):
     image = draw(st_images)
     regions = {tr.id: tr for tr in draw(st.lists(st_text_regions))}
-    page = Page(image=image, regions=regions)
-    return page
+    reading_order = draw(st.one_of(st.none(), st.permutations(list(regions.keys()))))
+    return Page(image=image, regions=regions, reading_order=reading_order)
 
 
 @st.composite
 def st_pages_with_dimensions(draw):
     image = draw(st_images_with_dimensions)
     regions = {tr.id: tr for tr in draw(st.lists(st_text_regions))}
-    page = Page(image=image, regions=regions)
-    return page
+    reading_order = draw(st.one_of(st.none(), st.permutations(list(regions.keys()))))
+    return Page(image=image, regions=regions, reading_order=reading_order)
