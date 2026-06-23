@@ -23,6 +23,21 @@ def find_children(element: Element, name: str) -> Iterable[Element]:
     return (child for child in element if QName(child).localname == name)
 
 
+def _parse_alto_coords(element: Element) -> "Coords":
+    box_attrs = ["HPOS", "VPOS", "WIDTH", "HEIGHT"]
+    if not all(attr in element.attrib for attr in box_attrs):
+        raise ALTOXMLError("Missing one of the box attributes")
+    return Coords.from_box(
+        Box.from_top_left_width_height(
+            top_left=Point(
+                x=int(element.attrib["HPOS"]), y=int(element.attrib["VPOS"])
+            ),
+            width=int(element.attrib["WIDTH"]),
+            height=int(element.attrib["HEIGHT"]),
+        )
+    )
+
+
 class PageXMLError(Exception):
     pass
 
@@ -140,18 +155,7 @@ class TextLine(LayoutLine, DataClassJsonMixin):
         if "ID" not in element.attrib:
             raise ALTOXMLError("No ID found")
 
-        box_attrs = ["HPOS", "VPOS", "WIDTH", "HEIGHT"]
-        if not all(attr in element.attrib for attr in box_attrs):
-            raise ALTOXMLError("Missing one of the box attributes")
-        coords: Coords = Coords.from_box(
-            Box.from_top_left_width_height(
-                top_left=Point(
-                    x=int(element.attrib["HPOS"]), y=int(element.attrib["VPOS"])
-                ),
-                width=int(element.attrib["WIDTH"]),
-                height=int(element.attrib["HEIGHT"]),
-            )
-        )
+        coords = _parse_alto_coords(element)
 
         if len(element) == 0:
             raise ALTOXMLError("No text elements found")
@@ -203,18 +207,7 @@ class TextRegion(LayoutRegion, DataClassJsonMixin):
         if "ID" not in element.attrib:
             raise ALTOXMLError("No ID found")
 
-        box_attrs = ["HPOS", "VPOS", "WIDTH", "HEIGHT"]
-        if not all(attr in element.attrib for attr in box_attrs):
-            raise ALTOXMLError("Missing one of the box attributes")
-        coords: Coords = Coords.from_box(
-            Box.from_top_left_width_height(
-                top_left=Point(
-                    x=int(element.attrib["HPOS"]), y=int(element.attrib["VPOS"])
-                ),
-                width=int(element.attrib["WIDTH"]),
-                height=int(element.attrib["HEIGHT"]),
-            )
-        )
+        coords = _parse_alto_coords(element)
 
         textlines: dict[ID, TextLine] = {}
         for child in element:
