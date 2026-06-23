@@ -640,6 +640,16 @@ def test_page_nested_ordered_group() -> None:
     assert pa.reading_order == ["tr-1", "tr-2", "tr-3"]
 
 
+def test_page_unordered_group_indexed() -> None:
+    pa = parse_with_ro("""
+        <UnorderedGroupIndexed id="ug">
+            <RegionRefIndexed index="0" regionRef="tr-1"/>
+            <RegionRefIndexed index="1" regionRef="tr-2"/>
+        </UnorderedGroupIndexed>
+    """)
+    assert pa.reading_order == ["tr-1", "tr-2"]
+
+
 def test_page_from_alto_example() -> None:
     pa = Page.from_alto(etree.fromstring("""
         <alto>
