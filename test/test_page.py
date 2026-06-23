@@ -901,17 +901,7 @@ def test_page_alto_has_no_reading_order() -> None:
             <Description>
                 <sourceImageInformation><fileName>a.jpg</fileName></sourceImageInformation>
             </Description>
-            <Layout>
-                <Page>
-                    <PrintSpace>
-                        <TextBlock ID="tr-1" HPOS="1" VPOS="2" WIDTH="3" HEIGHT="4">
-                            <TextLine ID="tl-1" HPOS="2" VPOS="3" WIDTH="4" HEIGHT="5">
-                                <String CONTENT="foo"/>
-                            </TextLine>
-                        </TextBlock>
-                    </PrintSpace>
-                </Page>
-            </Layout>
+            <Layout><Page><PrintSpace/></Page></Layout>
         </alto>
     """))
     assert pa.reading_order is None
