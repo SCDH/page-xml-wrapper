@@ -1,7 +1,7 @@
 from pathlib import Path
 
 import pytest
-from hypothesis import given, assume
+from hypothesis import given, assume, settings
 import hypothesis.strategies as st
 
 from lxml import etree
@@ -550,6 +550,106 @@ def test_from_missing_xml_file(tmp_path: Path) -> None:
         Page.from_xml_file(missing_file)
 
 
+READING_ORDER_XML_TEMPLATE = """
+    <Page imageFilename="a.jpg">
+        <ReadingOrder>{ro}</ReadingOrder>
+        <TextRegion id="tr-1">
+            <Coords points="1,2 3,4"/>
+            <TextLine id="tl-1">
+                <Coords points="1,2 3,4"/>
+                <TextEquiv><Unicode>foo</Unicode></TextEquiv>
+            </TextLine>
+        </TextRegion>
+        <TextRegion id="tr-2">
+            <Coords points="5,6 7,8"/>
+            <TextLine id="tl-2">
+                <Coords points="5,6 7,8"/>
+                <TextEquiv><Unicode>bar</Unicode></TextEquiv>
+            </TextLine>
+        </TextRegion>
+        <TextRegion id="tr-3">
+            <Coords points="9,10 11,12"/>
+            <TextLine id="tl-3">
+                <Coords points="9,10 11,12"/>
+                <TextEquiv><Unicode>baz</Unicode></TextEquiv>
+            </TextLine>
+        </TextRegion>
+    </Page>
+"""
+
+
+def parse_with_ro(ro_xml: str) -> Page:
+    return Page.from_xml(etree.fromstring(READING_ORDER_XML_TEMPLATE.format(ro=ro_xml)))
+
+
+def test_page_without_reading_order() -> None:
+    pa = Page.from_xml(etree.fromstring("""
+        <Page imageFilename="a.jpg">
+            <TextRegion id="tr-1">
+                <Coords points="1,2 3,4"/>
+                <TextLine id="tl-1">
+                    <Coords points="1,2 3,4"/>
+                    <TextEquiv><Unicode>foo</Unicode></TextEquiv>
+                </TextLine>
+            </TextRegion>
+        </Page>
+    """))
+    assert pa.reading_order is None
+
+
+def test_page_ordered_group() -> None:
+    pa = parse_with_ro("""
+        <OrderedGroup id="ro">
+            <RegionRefIndexed index="0" regionRef="tr-1"/>
+            <RegionRefIndexed index="1" regionRef="tr-2"/>
+        </OrderedGroup>
+    """)
+    assert pa.reading_order == ["tr-1", "tr-2"]
+
+
+def test_page_ordered_group_sorts_by_index() -> None:
+    pa = parse_with_ro("""
+        <OrderedGroup id="ro">
+            <RegionRefIndexed index="1" regionRef="tr-2"/>
+            <RegionRefIndexed index="0" regionRef="tr-1"/>
+        </OrderedGroup>
+    """)
+    assert pa.reading_order == ["tr-1", "tr-2"]
+
+
+def test_page_unordered_group() -> None:
+    pa = parse_with_ro("""
+        <UnorderedGroup id="ug">
+            <RegionRef regionRef="tr-1"/>
+            <RegionRef regionRef="tr-2"/>
+        </UnorderedGroup>
+    """)
+    assert pa.reading_order == ["tr-1", "tr-2"]
+
+
+def test_page_nested_ordered_group() -> None:
+    pa = parse_with_ro("""
+        <OrderedGroup id="ro">
+            <RegionRefIndexed index="0" regionRef="tr-1"/>
+            <OrderedGroupIndexed index="1" id="sub">
+                <RegionRefIndexed index="0" regionRef="tr-2"/>
+                <RegionRefIndexed index="1" regionRef="tr-3"/>
+            </OrderedGroupIndexed>
+        </OrderedGroup>
+    """)
+    assert pa.reading_order == ["tr-1", "tr-2", "tr-3"]
+
+
+def test_page_unordered_group_indexed() -> None:
+    pa = parse_with_ro("""
+        <UnorderedGroupIndexed id="ug">
+            <RegionRefIndexed index="0" regionRef="tr-1"/>
+            <RegionRefIndexed index="1" regionRef="tr-2"/>
+        </UnorderedGroupIndexed>
+    """)
+    assert pa.reading_order == ["tr-1", "tr-2"]
+
+
 def test_page_from_alto_example() -> None:
     pa = Page.from_alto(etree.fromstring("""
         <alto>
@@ -795,6 +895,18 @@ def test_page_alto_from_missing_file(tmp_path: Path) -> None:
         Page.from_alto_file(missing_file)
 
 
+def test_page_alto_has_no_reading_order() -> None:
+    pa = Page.from_alto(etree.fromstring("""
+        <alto>
+            <Description>
+                <sourceImageInformation><fileName>a.jpg</fileName></sourceImageInformation>
+            </Description>
+            <Layout><Page><PrintSpace/></Page></Layout>
+        </alto>
+    """))
+    assert pa.reading_order is None
+
+
 @given(st_text_regions, st_pages())
 def test_page_region_lookup(region: TextRegion, page: Page) -> None:
     assume(region.id not in page.regions)
@@ -809,6 +921,65 @@ def test_page_region_lookup(region: TextRegion, page: Page) -> None:
 def test_page_region_lookup_not_found(id: str, page: Page) -> None:
     assume(id not in page.regions)
     assert page.lookup_region(id) is None
+
+
+def test_regions_ordered_without_reading_order() -> None:
+    tr1 = TextRegion(id="tr-1", coords=Coords.parse("1,2 3,4"), textlines={})
+    tr2 = TextRegion(id="tr-2", coords=Coords.parse("1,2 3,4"), textlines={})
+    pa = Page(
+        image=Image(filename="a.jpg", width=None, height=None),
+        regions={"tr-1": tr1, "tr-2": tr2},
+    )
+    assert pa.regions_ordered() == [tr1, tr2]
+
+
+def test_regions_ordered_with_reading_order() -> None:
+    tr1 = TextRegion(id="tr-1", coords=Coords.parse("1,2 3,4"), textlines={})
+    tr2 = TextRegion(id="tr-2", coords=Coords.parse("1,2 3,4"), textlines={})
+    pa = Page(
+        image=Image(filename="a.jpg", width=None, height=None),
+        regions={"tr-1": tr1, "tr-2": tr2},
+        reading_order=["tr-2", "tr-1"],
+    )
+    assert pa.regions_ordered() == [tr2, tr1]
+
+
+def test_regions_ordered_skips_missing_ids() -> None:
+    tr1 = TextRegion(id="tr-1", coords=Coords.parse("1,2 3,4"), textlines={})
+    pa = Page(
+        image=Image(filename="a.jpg", width=None, height=None),
+        regions={"tr-1": tr1},
+        reading_order=["tr-1", "nonexistent"],
+    )
+    assert pa.regions_ordered() == [tr1]
+
+
+def test_regions_ordered_appends_unlisted_regions() -> None:
+    tr1 = TextRegion(id="tr-1", coords=Coords.parse("1,2 3,4"), textlines={})
+    tr2 = TextRegion(id="tr-2", coords=Coords.parse("1,2 3,4"), textlines={})
+    pa = Page(
+        image=Image(filename="a.jpg", width=None, height=None),
+        regions={"tr-1": tr1, "tr-2": tr2},
+        reading_order=["tr-1"],
+    )
+    assert pa.regions_ordered() == [tr1, tr2]
+
+
+@given(st_pages())
+def test_regions_ordered_covers_all_regions(page: Page) -> None:
+    ordered = page.regions_ordered()
+    assert {r.id for r in ordered} == set(page.regions.keys())
+    assert len(ordered) == len(page.regions)
+
+
+@given(st_pages())
+@settings(max_examples=25)
+def test_regions_ordered_preserves_reading_order(page: Page) -> None:
+    assume(page.reading_order is not None)
+    assert page.reading_order is not None  # type narrowing for static analysis
+    ordered_ids = [r.id for r in page.regions_ordered()]
+    existing_in_order = [rid for rid in page.reading_order if rid in page.regions]
+    assert ordered_ids[: len(existing_in_order)] == existing_in_order
 
 
 def test_page_all_text_and_words() -> None:
@@ -839,13 +1010,38 @@ def test_page_all_text_and_words() -> None:
     assert list(pa.all_words()) == ["foo", "bar", "bla", "blub", "42"]
 
 
+def test_page_all_text_and_words_respect_reading_order() -> None:
+    pa = Page(
+        image=Image(filename="a", width=None, height=None),
+        regions={
+            "a": TextRegion(
+                id="a",
+                coords=Coords.parse("1,2 3,4"),
+                textlines={
+                    "b": TextLine(id="b", coords=Coords.parse("2,3 4,5"), text="foo")
+                },
+            ),
+            "b": TextRegion(
+                id="b",
+                coords=Coords.parse("5,6 7,8"),
+                textlines={
+                    "c": TextLine(id="c", coords=Coords.parse("6,7 8,9"), text="bar")
+                },
+            ),
+        },
+        reading_order=["b", "a"],
+    )
+    assert list(pa.all_text()) == ["bar", "foo"]
+    assert list(pa.all_words()) == ["bar", "foo"]
+
+
 @given(st_pages())
 def test_page_all_arbitrary_text_and_words(page: Page) -> None:
     assert list(page.all_text()) == [
-        t for r in page.regions.values() for t in r.all_text()
+        t for r in page.regions_ordered() for t in r.all_text()
     ]
     assert list(page.all_words()) == [
-        w for r in page.regions.values() for w in r.all_words()
+        w for r in page.regions_ordered() for w in r.all_words()
     ]
 
 
@@ -864,4 +1060,14 @@ def test_page_serialization_roundtrip() -> None:
             )
         },
     )
+    assert Page.from_dict(pa.to_dict()) == pa
+
+
+def test_page_reading_order_serialization_roundtrip() -> None:
+    pa = parse_with_ro("""
+        <OrderedGroup id="ro">
+            <RegionRefIndexed index="0" regionRef="tr-2"/>
+            <RegionRefIndexed index="1" regionRef="tr-1"/>
+        </OrderedGroup>
+    """)
     assert Page.from_dict(pa.to_dict()) == pa

@@ -33,8 +33,8 @@ All dataclasses are serializable with `to_dict`/`from_dict` and `to_json`/`from_
 | `Page`, `TextRegion`, `TextLine`, `Coords` | `pygexml.page` |
 | `Point`, `Box`, `Polygon` | `pygexml.geometry` |
 
-`Page`, `TextRegion` and `TextLine` each expose `all_text()` and `all_words()` iterators.
-Lookups by ID are available via `lookup_region()` and `lookup_textline()`.
+`Page`, `TextRegion` and `TextLine` each expose `all_text()` and `all_words()` iterators. On `Page`, these respect the PAGE-XML reading order if present.
+Lookups by ID are available via `lookup_region()` and `lookup_textline()`. The reading order is also accessible directly via `regions_ordered()`.
 
 Refer to the [online API docs][api-docs] for details.
 
