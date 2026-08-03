@@ -373,14 +373,12 @@ class Page(PageLayout, DataClassJsonMixin):
     def regions_ordered(self) -> list[TextRegion]:
         if self.reading_order is None:
             return list(self.regions.values())
-        seen: set[ID] = set()
-        result: list[TextRegion] = []
-        for rid in self.reading_order:
-            if (region := self.regions.get(rid)) is not None:
-                result.append(region)
-                seen.add(rid)
-        result.extend(r for rid, r in self.regions.items() if rid not in seen)
-        return result
+        ordered = [
+            self.regions[rid] for rid in self.reading_order if rid in self.regions
+        ]
+        seen_ids = {r.id for r in ordered}
+        rest = [r for r in self.regions.values() if r.id not in seen_ids]
+        return ordered + rest
 
     def all_text(self) -> Iterable[str]:
         return (line for region in self.regions_ordered() for line in region.all_text())
