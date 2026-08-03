@@ -62,7 +62,7 @@ black pygexml test          # format
 mypy pygexml test           # type check
 pyright pygexml test        # type check
 pytest -v                   # tests
-pdoc -o .api_docs pygexml/* # API docs
+pdoc -o .api_docs ./pygexml # API docs
 ```
 
 CI runs on Python 3.12, 3.13 and 3.14. [API documentation][api-docs] is published to GitHub Pages on every push to `main`.
